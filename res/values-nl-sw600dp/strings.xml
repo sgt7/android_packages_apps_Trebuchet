@@ -1,5 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!-- 
+<?xml version="1.0" encoding="utf-8"?>
+<!--
 /*
 * Copyright (C) 2010 The Android Open Source Project
 *
@@ -15,11 +15,15 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
- -->
+-->
 
-<resources xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="wallpaper_dialog_title" msgid="6395005465873616423">"Achtergrond selecteren"</string>
-    <string name="wallpaper_chooser_empty" msgid="5909737215399452696">"Geen achtergronden beschikbaar"</string>
-    <string name="wallpaper_cancel" msgid="1110492200533814461">"Annuleren"</string>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <!-- Title of the wallpaper selection dialog [CHAR_LIMIT=40]-->
+    <string name="wallpaper_dialog_title">chtergrond selecteren</string>
+
+    <!-- Text to show when there are no wallpapers [CHAR_LIMIT=40]-->
+    <string name="wallpaper_chooser_empty">Geen achtergronden beschikbaar</string>
+
+    <!-- Negative button text for the wallpaper selection dialog [CHAR_LIMIT=40]-->
+    <string name="wallpaper_cancel">Annuleren</string>
 </resources>
