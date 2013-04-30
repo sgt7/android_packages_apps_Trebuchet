@@ -36,6 +36,12 @@ class ShortcutInfo extends ItemInfo {
     Intent intent;
 
     /**
+     * Indicates whether the title comes from an application's resource (if false)
+     * or from a custom title (if true.)
+     */
+    boolean customTitle;
+
+    /**
      * Indicates whether the icon comes from an application's resource (if false)
      * or from a custom Bitmap (if true.)
      */
@@ -62,6 +68,14 @@ class ShortcutInfo extends ItemInfo {
      * Title change listener
      */
     private ShortcutListener mListener;
+
+    /**
+     * The shortcut folder information
+     *
+     * NOTE: For now only is filled when the shortcut is being dropped, so the shortcut
+     * can be restored if finally the item is not dropped. Only for internal use.
+     */
+    FolderInfo mFolderInfo = null;
 
     ShortcutInfo() {
         itemType = LauncherSettings.BaseLauncherColumns.ITEM_TYPE_SHORTCUT;
@@ -127,6 +141,7 @@ class ShortcutInfo extends ItemInfo {
 
     public void setTitle(CharSequence title) {
         this.title = title;
+        this.customTitle = true;
         if (mListener != null) {
             mListener.onTitleChanged(title);
         }
@@ -140,7 +155,8 @@ class ShortcutInfo extends ItemInfo {
     void onAddToDatabase(ContentValues values) {
         super.onAddToDatabase(values);
 
-        String titleStr = title != null ? title.toString() : null;
+        String titleStr = title != null && (customTitle || itemType == LauncherSettings.Favorites.ITEM_TYPE_SHORTCUT) ?
+                title.toString() : null;
         values.put(LauncherSettings.BaseLauncherColumns.TITLE, titleStr);
 
         String uri = intent != null ? intent.toUri(0) : null;
@@ -167,7 +183,7 @@ class ShortcutInfo extends ItemInfo {
 
     @Override
     public String toString() {
-        return "ShortcutInfo(title=" + title.toString() + "intent=" + intent + "id=" + this.id
+        return "ShortcutInfo(title=" + (title != null ? title.toString() : "unknown ") + "intent=" + intent + "id=" + this.id
                 + " type=" + this.itemType + " container=" + this.container + " screen=" + screen
                 + " cellX=" + cellX + " cellY=" + cellY + " spanX=" + spanX + " spanY=" + spanY
                 + " dropPos=" + Arrays.toString(dropPos) + ")";

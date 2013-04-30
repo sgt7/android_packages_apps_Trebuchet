@@ -44,7 +44,6 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.cyanogenmod.trebuchet.R;
 import com.cyanogenmod.trebuchet.FolderInfo.FolderListener;
 import com.cyanogenmod.trebuchet.preference.PreferencesProvider;
 
@@ -128,8 +127,8 @@ public class Folder extends LinearLayout implements DragSource, View.OnClickList
         mMaxCountY = res.getInteger(R.integer.folder_max_count_y);
         mMaxNumItems = res.getInteger(R.integer.folder_max_num_items);
         if (mMaxCountX < 0 || mMaxCountY < 0 || mMaxNumItems < 0) {
-            mMaxCountX = LauncherModel.getCellCountX();
-            mMaxCountY = LauncherModel.getCellCountY();
+            mMaxCountX = LauncherModel.getWorkspaceCellCountX();
+            mMaxCountY = LauncherModel.getWorkspaceCellCountY();
             mMaxNumItems = mMaxCountX * mMaxCountY;
         }
 
@@ -159,7 +158,12 @@ public class Folder extends LinearLayout implements DragSource, View.OnClickList
         mContent.getShortcutsAndWidgets().setMotionEventSplittingEnabled(false);
         mFolderName = (FolderEditText) findViewById(R.id.folder_name);
         mFolderName.setFolder(this);
-        mFolderName.setOnFocusChangeListener(this);
+        if (mLauncher.getLockWorkspace()) {
+            mFolderName.setKeyListener(null);
+            mFolderName.setFocusable(false);
+        } else {
+            mFolderName.setOnFocusChangeListener(this);
+        }
 
         // We find out how tall the text view wants to be (it is set to wrap_content), so that
         // we can allocate the appropriate amount of space for it.
@@ -212,6 +216,9 @@ public class Folder extends LinearLayout implements DragSource, View.OnClickList
     }
 
     public boolean onLongClick(View v) {
+        // Only if workspace is not locked
+        if (mLauncher.getLockWorkspace()) return false;
+
         // Return if global dragging is not enabled
         if (!mLauncher.isDraggingEnabled()) return true;
 
@@ -697,6 +704,12 @@ public class Folder extends LinearLayout implements DragSource, View.OnClickList
             boolean success) {
         if (success) {
             if (mDeleteFolderOnDropCompleted && !mItemAddedBackToSelfViaIcon) {
+                // We need to inject the folder info to the shortcut because
+                // the folder is going to be removed from the workspace and the
+                // shortcut could need to be restored
+                if (d.dragInfo instanceof ShortcutInfo) {
+                    ((ShortcutInfo)d.dragInfo).mFolderInfo = mInfo;
+                }
                 replaceFolderWithFinalItem();
             }
         } else {
@@ -948,16 +961,28 @@ public class Folder extends LinearLayout implements DragSource, View.OnClickList
         Runnable onCompleteRunnable = new Runnable() {
             @Override
             public void run() {
-                CellLayout cellLayout = mLauncher.getCellLayout(mInfo.container, mInfo.screen);
+                final int screen = mInfo.screen;
+                if (mInfo.container == LauncherSettings.Favorites.CONTAINER_HOTSEAT) {
+                    mInfo.screen = mLauncher.getHotseat().getScreenFromOrder(mInfo.screen);
+                }
 
-               View child = null;
+                final CellLayout cellLayout = mLauncher.getCellLayout(mInfo.container, mInfo.screen);
+
+                View child = null;
                 // Move the item from the folder to the workspace, in the position of the folder
                 if (getItemCount() == 1) {
                     ShortcutInfo finalItem = mInfo.contents.get(0);
                     child = mLauncher.createShortcut(R.layout.application, cellLayout,
                             finalItem);
+                    int x = mInfo.cellX, y = mInfo.cellY;
+                    if (mInfo.container == LauncherSettings.Favorites.CONTAINER_HOTSEAT &&
+                        mLauncher.getHotseat().hasVerticalHotseat()) {
+                        // Note: We need the correct position in order to save to db
+                        y = mLauncher.getHotseat().getCellYFromOrder(x);
+                        x = mLauncher.getHotseat().getCellXFromOrder(x);
+                    }
                     LauncherModel.addOrMoveItemInDatabase(mLauncher, finalItem, mInfo.container,
-                            mInfo.screen, mInfo.cellX, mInfo.cellY);
+                            screen, x, y);
                 }
                 if (getItemCount() <= 1) {
                     // Remove the folder
@@ -971,7 +996,7 @@ public class Folder extends LinearLayout implements DragSource, View.OnClickList
                 // We add the child after removing the folder to prevent both from existing at
                 // the same time in the CellLayout.
                 if (child != null) {
-                    mLauncher.getWorkspace().addInScreen(child, mInfo.container, mInfo.screen,
+                    mLauncher.getWorkspace().addInScreen(child, mInfo.container, screen,
                             mInfo.cellX, mInfo.cellY, mInfo.spanX, mInfo.spanY);
                 }
             }

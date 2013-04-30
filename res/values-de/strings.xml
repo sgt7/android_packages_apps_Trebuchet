@@ -29,6 +29,8 @@
     <string name="widgets_tab_label" msgid="9145860100000983599">"Widgets"</string>
     <string name="long_press_widget_to_add" msgid="7395697462851217506">"Zum Hinzufügen Widget berühren und halten"</string>
     <string name="market" msgid="2652226429823445833">"Shop"</string>
+    <!-- Menu button text. -->
+    <string name="menu">Menü</string>
     <string name="external_drop_widget_error" msgid="2285187188524172774">"Element wurde nicht auf Startbildschirm abgelegt."</string>
     <string name="external_drop_widget_pick_title" msgid="7040647073452295370">"Widget zum Erstellen auswählen"</string>
     <string name="rename_folder_label" msgid="5646236631298452787">"Ordnername"</string>
@@ -40,7 +42,6 @@
     <string name="group_shortcuts" msgid="9133529424900391877">"Verknüpfungen"</string>
     <string name="group_widgets" msgid="6704978494073105844">"Widgets"</string>
     <!-- Options in "Add to Home" dialog box; Title of the group containing the list of all launcher actions -->
-    <string name="group_actions">Aktionen</string>
     <string name="group_wallpapers" msgid="1568191644272224858">"Hintergründe"</string>
     <string name="completely_out_of_space" msgid="1759078539443491182">"Auf Ihrem Startbildschirm ist kein Platz mehr vorhanden."</string>
     <string name="out_of_space" msgid="8365249326091984698">"Auf dem Startbildschirm ist kein Platz mehr vorhanden."</string>
@@ -198,8 +199,6 @@
     <string name="preferences_interface_homescreen_general_stretch_screens_summary">Seiten bildschirmfüllend ausdehnen</string>
     <string name="preferences_interface_homescreen_general_search_title">Suchleiste</string>
     <string name="preferences_interface_homescreen_general_search_summary">Dauerhafte Anzeige der Suchleiste</string>
-    <string name="preferences_interface_homescreen_general_resize_any_widget_title">Größe aller Widgets anpassbar</string>
-    <string name="preferences_interface_homescreen_general_resize_any_widget_summary">Größe statischer Widgets auch anpassbar machen</string>
     <string name="preferences_interface_homescreen_general_hide_icon_labels_title">Beschriftung nicht anzeigen</string>
     <string name="preferences_interface_homescreen_general_hide_icon_labels_summary">Beschriftung unterhalb der Icons nicht anzeigen</string>
     <string name="preferences_interface_homescreen_scrolling_category">Scrollen</string>
@@ -220,7 +219,7 @@
     <string name="preferences_interface_homescreen_indicator_enable_summary">Seitenindikator anzeigen</string>
     <string name="preferences_interface_homescreen_indicator_fade_title">Automatisch ausblenden</string>
     <string name="preferences_interface_homescreen_indicator_fade_summary">Indikator nach Seitenwechsel ausblenden</string>
-    <string name="preferences_interface_homescreen_indicator_position_title">Indikator-Position</string>
+    <string name="preferences_interface_homescreen_indicator_position_title">Position</string>
     <string name="preferences_interface_homescreen_indicator_position_summary">Anzeigeposition des Indikators auswählen</string>
 
     <!-- Drawer -->
@@ -243,15 +242,21 @@
     <string name="preferences_interface_drawer_indicator_enable_summary">Seitenindikator anzeigen</string>
     <string name="preferences_interface_drawer_indicator_fade_title">Automatisch ausblenden</string>
     <string name="preferences_interface_drawer_indicator_fade_summary">Indikator nach Seitenwechsel ausblenden</string>
+    <string name="preferences_interface_drawer_indicator_position_title">Position</string>
+    <string name="preferences_interface_drawer_indicator_position_summary">Anzeigeposition des Indikators auswählen</string>
 
     <!-- Dock -->
     <string name="preferences_interface_dock_title">Dock</string>
+    <string name="preferences_interface_dock_enabled_title">Aktivieren</string>
+    <string name="preferences_interface_dock_enabled_summary">Dock anzeigen</string>
     <string name="preferences_interface_dock_pages_title">Seiten</string>
     <string name="preferences_interface_dock_pages_summary">Anzahl der Seiten im Dock</string>
     <string name="preferences_interface_dock_default_page_title">Standardseite</string>
     <string name="preferences_interface_dock_default_page_summary">Die Standardseite festlegen</string>
     <string name="preferences_interface_dock_icons_title">Icons</string>
     <string name="preferences_interface_dock_icons_summary">Anzahl der Icons/Spalten des Docks festlegen</string>
+    <string name="preferences_interface_dock_icon_scale_title">Icongröße</string>
+    <string name="preferences_interface_dock_icon_scale_summary">Größe der Icons im Dock</string>
     <string name="preferences_interface_dock_divider_title">Dock-Abtrennung anzeigen</string>
     <string name="preferences_interface_dock_divider_summary">Linie als Indikator-Hintergrund anzeigen</string>
 
@@ -263,4 +268,22 @@
     <string name="preferences_interface_general_orientation_title">Automatische Seitenausrichtung</string>
     <string name="preferences_interface_general_fullscreen_title">Vollbildmodus</string>
     <string name="preferences_interface_general_fullscreen_summary">Statusleiste für Vollbildansicht ausblenden</string>
+
+    <!-- Effects -->
+    <string name="effects_standard">Standard</string>
+    <string name="effects_tablet">Tablett</string>
+    <string name="effects_zoom_in">Hineinzoomen</string>
+    <string name="effects_zoom_out">Herauszoomen</string>
+    <string name="effects_rotate_up">Rotieren oben</string>
+    <string name="effects_rotate_down">Rotieren unten</string>
+    <string name="effects_cylinder_in">Zylinder innen</string>
+    <string name="effects_cylinder_out">Zylinder außen</string>
+    <string name="effects_cube_in">Würfel innen</string>
+    <string name="effects_cube_out">Würfel außen</string>
+    <string name="effects_spin">Wirbeln</string>
+    <string name="effects_flip">Blättern</string>
+    <string name="effects_stack">Stapeln</string>
+    <string name="effects_accordion">Akkordeon</string>
+    <string name="effects_carousel_left">Karussell links</string>
+    <string name="effects_carousel_right">Karussell rechts</string>
 </resources>

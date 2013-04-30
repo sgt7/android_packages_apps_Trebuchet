@@ -13,21 +13,14 @@
      See the License for the specific language governing permissions and
      limitations under the License.
 -->
-<com.cyanogenmod.trebuchet.SearchDropTargetBar
+
+<!-- The workspace contains 5 screens of cells -->
+
+<com.cyanogenmod.trebuchet.Workspace
     xmlns:android="http://schemas.android.com/apk/res/android"
-    style="@style/QSBBarTop"
-    android:focusable="false">
-
-    <!-- Search buttons container -->
-    <include android:id="@+id/qsb_search_bar"
-        layout="@layout/search_bar_top" />
-
-    <!-- Drag specific targets container -->
-    <LinearLayout
-        style="@style/SearchDropTargetBarTop"
-        android:id="@+id/drag_target_bar">
-
-        <include
-            layout="@layout/drop_target_bar_top" />
-    </LinearLayout>
-</com.cyanogenmod.trebuchet.SearchDropTargetBar>
+    xmlns:launcher="http://schemas.android.com/apk/res/com.cyanogenmod.trebuchet"
+    android:paddingLeft="@dimen/workspace_left_padding"
+    android:paddingRight="@dimen/workspace_right_padding"
+    android:paddingTop="@dimen/workspace_top_padding"
+    android:paddingBottom="@dimen/workspace_bottom_padding"
+    launcher:pageSpacing="@dimen/workspace_page_spacing" />

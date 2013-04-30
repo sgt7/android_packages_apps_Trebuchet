@@ -30,7 +30,6 @@ import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.ActivityOptions;
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.app.SearchManager;
 import android.app.StatusBarManager;
 import android.appwidget.AppWidgetHostView;
@@ -55,10 +54,11 @@ import android.content.res.Resources;
 import android.database.ContentObserver;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.Rect;
-import android.graphics.Shader.TileMode;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -109,7 +109,6 @@ import com.cyanogenmod.trebuchet.preference.*;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.FileDescriptor;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -142,6 +141,7 @@ public final class Launcher extends Activity
     private static final int MENU_PREFERENCES = MENU_SYSTEM_SETTINGS + 1;
     private static final int MENU_WALLPAPER_SETTINGS = MENU_PREFERENCES + 1;
     private static final int MENU_HELP = MENU_WALLPAPER_SETTINGS + 1;
+    private static final int MENU_LOCK_WORKSPACE = MENU_HELP + 1;
 
     private static final int REQUEST_CREATE_SHORTCUT = 1;
     private static final int REQUEST_CREATE_APPWIDGET = 5;
@@ -154,16 +154,16 @@ public final class Launcher extends Activity
 
     static final String EXTRA_SHORTCUT_DUPLICATE = "duplicate";
 
-    static final String ACTION_LAUNCHER = "com.cyanogenmod.trebuchet.LAUNCHER_ACTION";
-
-    static final int MAX_SCREEN_COUNT = 7;
+    static final int MAX_WORKSPACE_SCREEN_COUNT = 7;
+    static final int MAX_HOTSEAT_SCREEN_COUNT = 3;
+    static final int MAX_SCREEN_COUNT = MAX_WORKSPACE_SCREEN_COUNT + MAX_HOTSEAT_SCREEN_COUNT;
     static final int DEFAULT_SCREEN = 2;
 
-    static final int DIALOG_CREATE_SHORTCUT = 1;
-    static final int DIALOG_CREATE_ACTION = 2;
-
     private static final String PREFERENCES = "launcher.preferences";
-    static final String DUMP_STATE_PROPERTY = "debug.dumpstate";
+    // To turn on these properties, type
+    // adb shell setprop log.tag.PROPERTY_NAME [VERBOSE | SUPPRESS]
+    static final String FORCE_ENABLE_ROTATION_PROPERTY = "launcher_force_rotate";
+    static final String DUMP_STATE_PROPERTY = "launcher_dump_state";
 
     // The Intent extra that defines whether to ignore the launch animation
     static final String INTENT_EXTRA_IGNORE_LAUNCH_ANIMATION =
@@ -172,7 +172,7 @@ public final class Launcher extends Activity
     // Type: int
     private static final String RUNTIME_STATE_CURRENT_SCREEN = "launcher.current_screen";
     // Type: int
-    private static final String RUNTIME_STATE_CURRENT_HOTSEAT_SCREEN = "launcher.current_hotseat_screen";
+    private static final String RUNTIME_STATE_CURRENT_HOTSEAT_SCREEN = "launcher.hotseat.current_screen";
     // Type: int
     private static final String RUNTIME_STATE = "launcher.state";
     // Type: int
@@ -224,6 +224,7 @@ public final class Launcher extends Activity
     private Workspace mWorkspace;
     private View mQsbDivider;
     private View mDockDivider;
+    private View mLauncherView;
     private DragLayer mDragLayer;
     private DragController mDragController;
 
@@ -292,6 +293,9 @@ public final class Launcher extends Activity
     private static Drawable.ConstantState[] sVoiceSearchIcon = new Drawable.ConstantState[2];
     private static Drawable.ConstantState[] sAppMarketIcon = new Drawable.ConstantState[2];
 
+    private Drawable mWorkspaceBackgroundDrawable;
+    private Drawable mBlackBackgroundDrawable;
+
     private final ArrayList<Integer> mSynchronouslyBoundPages = new ArrayList<Integer>();
 
     static final ArrayList<String> sDumpLogs = new ArrayList<String>();
@@ -319,13 +323,13 @@ public final class Launcher extends Activity
     private boolean mShowDockDivider;
     private boolean mHideIconLabels;
     private boolean mAutoRotate;
+    private boolean mLockWorkspace;
     private boolean mFullscreenMode;
-    private boolean mDrawerShowWallpaper;
-    private boolean mLandscapeDockOnBottom;
+    private boolean mDrawerShowWallpaper = false;
     private int mHomescreenDoubleTap;
     private int mHomescreenSwipeUp;
     private int mHomescreenSwipeDown;
-    private boolean mFadeOut;
+    private boolean mFadeOutDrawer;
 
     private String mDrawerBackActivity = "";
 
@@ -344,6 +348,8 @@ public final class Launcher extends Activity
     private static ArrayList<PendingAddArguments> sPendingAddList
             = new ArrayList<PendingAddArguments>();
 
+    private static boolean sForceEnableRotation = isPropertyEnabled(FORCE_ENABLE_ROTATION_PROPERTY);
+
     private static class PendingAddArguments {
         int requestCode;
         Intent intent;
@@ -353,22 +359,23 @@ public final class Launcher extends Activity
         int cellY;
     }
 
-
-    private boolean doesFileExist(String filename) {
-        FileInputStream fis;
-        try {
-            fis = openFileInput(filename);
-            fis.close();
-            return true;
-        } catch (java.io.FileNotFoundException e) {
-            return false;
-        } catch (java.io.IOException e) {
-            return true;
-        }
+    private static boolean isPropertyEnabled(String propertyName) {
+        return Log.isLoggable(propertyName, Log.VERBOSE);
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Listen for expanded desktop
+        getContentResolver().registerContentObserver(
+                Settings.System.getUriFor(Settings.System.EXPANDED_DESKTOP_STATE),
+                false, new ContentObserver(new Handler()) {
+            @Override
+            public void onChange(boolean selfChange) {
+                // Refresh launcher content
+                //finish();
+            }
+        });
+
         if (DEBUG_STRICT_MODE) {
             StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
                     .detectDiskReads()
@@ -410,14 +417,12 @@ public final class Launcher extends Activity
         mShowDockDivider = PreferencesProvider.Interface.Dock.getShowDivider() && mShowHotseat;
         mHideIconLabels = PreferencesProvider.Interface.Homescreen.getHideIconLabels();
         mAutoRotate = PreferencesProvider.Interface.General.getAutoRotate(getResources().getBoolean(R.bool.allow_rotation));
+        mLockWorkspace = PreferencesProvider.Interface.General.getLockWorkspace(getResources().getBoolean(R.bool.lock_workspace));
         mFullscreenMode = PreferencesProvider.Interface.General.getFullscreenMode();
-        mDrawerShowWallpaper = PreferencesProvider.Interface.Drawer.getDrawerShowWallpaper();
-        mLandscapeDockOnBottom = PreferencesProvider.Interface.Dock.getLandscapeDockOnBottom() &&
-                LauncherApplication.isScreenLandscape(app);
         mHomescreenDoubleTap = PreferencesProvider.Interface.Gestures.getHomescreenDoubleTap();
         mHomescreenSwipeUp = PreferencesProvider.Interface.Gestures.getHomescreenSwipeUp();
         mHomescreenSwipeDown = PreferencesProvider.Interface.Gestures.getHomescreenSwipeDown();
-        mFadeOut = PreferencesProvider.Interface.Drawer.getFadeOut();
+        mFadeOutDrawer = PreferencesProvider.Interface.Drawer.getFadeOut();
 
         if (PROFILE_STARTUP) {
             android.os.Debug.startMethodTracing(
@@ -425,7 +430,7 @@ public final class Launcher extends Activity
         }
 
         checkForLocaleChange();
-        setContentView(mLandscapeDockOnBottom? R.layout.launcher_land : R.layout.launcher);
+        setContentView(R.layout.launcher);
         setupViews();
         showFirstRunWorkspaceCling();
 
@@ -633,16 +638,13 @@ public final class Launcher extends Activity
                 break;
             case REQUEST_PICK_SHORTCUT:
                 processShortcut(args.intent);
-                break;
+                // Don't remove pending add info
+                return false;
             case REQUEST_CREATE_SHORTCUT:
                 completeAddShortcut(args.intent, args.container, args.screen, args.cellX,
                         args.cellY);
                 result = true;
                 break;
-            case REQUEST_PICK_APPWIDGET:
-                addAppWidgetFromPick(args.intent, args.container, args.screen);
-                // Don't remove pending add info
-                return false;
             case REQUEST_CREATE_APPWIDGET:
                 int appWidgetId = args.intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, -1);
                 completeAddAppWidget(appWidgetId, args.container, args.screen, null, null);
@@ -673,7 +675,23 @@ public final class Launcher extends Activity
             return;
         }
         boolean delayExitSpringLoadedMode = false;
+        boolean isWidgetDrop = (requestCode == REQUEST_PICK_APPWIDGET ||
+                requestCode == REQUEST_CREATE_APPWIDGET);
         mWaitingForResult = false;
+
+        // We have special handling for widgets
+        if (isWidgetDrop) {
+            int appWidgetId = data != null ?
+                    data.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, -1) : -1;
+            if (appWidgetId < 0) {
+                Log.e(TAG, "Error: appWidgetId (EXTRA_APPWIDGET_ID) was not returned from the \\" +
+                        "widget configuration activity.");
+                completeTwoStageWidgetDrop(RESULT_CANCELED, appWidgetId);
+            } else {
+                completeTwoStageWidgetDrop(resultCode, appWidgetId);
+            }
+            return;
+        }
 
         // The pattern used here is that a user PICKs a specific application,
         // which, depending on the target, might need to CREATE the actual target.
@@ -752,6 +770,9 @@ public final class Launcher extends Activity
             showAllApps(false);
         }
         mOnResumeState = State.NONE;
+
+        // Background was set to gradient in onPause(), restore to black if in all apps.
+        setWorkspaceBackground(mState == State.WORKSPACE);
 
         // Process any items that were added while Launcher was away
         InstallShortcutReceiver.flushInstallQueue(this);
@@ -892,9 +913,9 @@ public final class Launcher extends Activity
         if (currentScreen > -1) {
             mWorkspace.setCurrentPage(currentScreen);
         }
-        currentScreen = savedState.getInt(RUNTIME_STATE_CURRENT_HOTSEAT_SCREEN, -1);
-        if (currentScreen > -1) {
-            mHotseat.setCurrentPage(currentScreen);
+        int currentHotseatScreen = savedState.getInt(RUNTIME_STATE_CURRENT_HOTSEAT_SCREEN, -1);
+        if (currentHotseatScreen > -1) {
+            mHotseat.setCurrentPage(mHotseat.getScreenFromOrder(currentHotseatScreen));
         }
 
         final long pendingAddContainer = savedState.getLong(RUNTIME_STATE_PENDING_ADD_CONTAINER, -1);
@@ -942,10 +963,15 @@ public final class Launcher extends Activity
     private void setupViews() {
         final DragController dragController = mDragController;
 
+        mLauncherView = findViewById(R.id.launcher);
         mDragLayer = (DragLayer) findViewById(R.id.drag_layer);
         mWorkspace = (Workspace) mDragLayer.findViewById(R.id.workspace);
         mQsbDivider = findViewById(R.id.qsb_divider);
         mDockDivider = findViewById(R.id.dock_divider);
+
+        mLauncherView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+        mWorkspaceBackgroundDrawable = getResources().getDrawable(R.drawable.workspace_bg);
+        mBlackBackgroundDrawable = new ColorDrawable(Color.BLACK);
 
         // Setup the drag layer
         mDragLayer.setup(this, dragController);
@@ -1000,17 +1026,19 @@ public final class Launcher extends Activity
         mAppsCustomizeTabHost = (AppsCustomizeTabHost)
                 findViewById(R.id.apps_customize_pane);
 
-        if (!mDrawerShowWallpaper) {
+        if (PreferencesProvider.Interface.Drawer.getDrawerColor() == 0xFF000000) {
             mAppsCustomizeTabHost.setBackgroundColor(0xFF000000);
+			mDrawerShowWallpaper = false;
         } else {
             mAppsCustomizeTabHost.setBackgroundColor(
                     PreferencesProvider.Interface.Drawer.getDrawerColor());
+            mDrawerShowWallpaper = true;
         }
 
         mAppsCustomizeContent = (AppsCustomizePagedView)
                 mAppsCustomizeTabHost.findViewById(R.id.apps_customize_pane_content);
         mAppsCustomizeContent.setup(this, dragController);
-        
+
         // Setup the drag controller (drop targets have to be added in reverse order in priority)
         dragController.setDragScoller(mWorkspace);
         dragController.setScrollView(mDragLayer);
@@ -1108,6 +1136,87 @@ public final class Launcher extends Activity
         } else {
             Log.e(TAG, "Couldn't find ActivityInfo for selected application: " + data);
         }
+    }
+
+    private void restoreShortcut(ShortcutInfo info) {
+        final View view = createShortcut(info);
+        FolderInfo folderInfo = info.mFolderInfo;
+        if (info.container >= 0 && folderInfo  != null) {
+            // The shortcut was contained by a folder
+            // It's necessary to recreate the folder or just to add to the existing one?
+            CellLayout layout = getCellLayout(folderInfo.container, folderInfo.screen);
+            View v = layout.getChildAt(folderInfo.cellX, folderInfo.cellY);
+            if (v == null) {
+                // Weird. Should not there be a shortcut or folder here?
+                return;
+            }
+            if (v.getTag() != null && v.getTag() instanceof ShortcutInfo) {
+                // Create a new folder
+                ShortcutInfo target = (ShortcutInfo)v.getTag();
+                // Remove the target item to allow to be occupied by the folder
+                layout.removeView(v);
+
+                // Create the folder and its new items
+                FolderIcon fi = addFolder(
+                                    layout, folderInfo.container, folderInfo.screen,
+                                    folderInfo.cellX, folderInfo.cellY);
+                int cellX = info.cellX;
+                int cellY = info.cellY;
+                info.cellX = -1;
+                info.cellY = -1;
+                target.cellX = -1;
+                target.cellY = -1;
+                if (cellX == 0 && cellY == 0) {
+                    fi.addItem(info);
+                    fi.addItem(target);
+                } else {
+                    fi.addItem(target);
+                    fi.addItem(info);
+                }
+            }
+        } else if (info.container >= 0) {
+            // The shortcut was contained by a folder and the folder still exists
+            FolderIcon folderIcon = null;
+
+            // We need to find the container in the workspace, because the shortcut has lost
+            // its information
+            ArrayList<ShortcutAndWidgetContainer> allSwc =
+                    mWorkspace.getAllShortcutAndWidgetContainers();
+            for (ShortcutAndWidgetContainer swc : allSwc) {
+                int cc = swc.getChildCount();
+                for (int i = 0; i < cc; i++) {
+                    View v = swc.getChildAt(i);
+                    if (v instanceof FolderIcon) {
+                        FolderInfo fi = (FolderInfo)v.getTag();
+                        if (fi != null && fi.id == info.container) {
+                            folderIcon = (FolderIcon)v;
+                            break;
+                        }
+                    }
+                }
+                if (folderIcon != null) {
+                    break;
+                }
+            }
+
+            if (folderIcon != null) {
+                folderIcon.addItem(info);
+            }
+
+        } else {
+            // Just restore the shortcut in its last position
+            long container = info.container;
+            int screen = info.screen;
+            int cellX = info.cellX;
+            int cellY = info.cellY;
+            int spanX = info.spanX;
+            int spanY = info.spanY;
+            mWorkspace.addInScreen(view, container, screen, cellX, cellY,
+                    spanX, spanY, isWorkspaceLocked());
+        }
+
+        // The folder info is not needed any more
+        info.mFolderInfo = null;
     }
 
     /**
@@ -1285,63 +1394,6 @@ public final class Launcher extends Activity
         resetAddInfo();
     }
 
-    private void addAction(LauncherAction.Action action) {
-        int[] cellXY = mPendingAddInfo.dropPos;
-        int cellX = mPendingAddInfo.cellX;
-        int cellY = mPendingAddInfo.cellY;
-        long container = mPendingAddInfo.container;
-        int screen = mPendingAddInfo.screen;
-        CellLayout layout = getCellLayout(container, screen);
-
-        boolean foundCellSpan;
-
-        LauncherActionInfo info = new LauncherActionInfo();
-        info.action = action;
-        info.title = getResources().getString(action.getString());
-        info.setIcon(((BitmapDrawable)getResources().getDrawable(action.getDrawable())).getBitmap());
-
-        final View view = createShortcut(info);
-
-        if (cellX >= 0 && cellY >= 0) {
-            if (cellXY == null) {
-                cellXY = new int[2];
-            }
-            cellXY[0] = cellX;
-            cellXY[1] = cellY;
-
-            foundCellSpan = true;
-
-            // If appropriate, either create a folder or add to an existing folder
-            if (mWorkspace.createUserFolderIfNecessary(view, container, layout, cellXY, 0,
-                    true, null,null)) {
-                return;
-            }
-            DragObject dragObject = new DragObject();
-            dragObject.dragInfo = info;
-            if (mWorkspace.addToExistingFolderIfNecessary(layout, cellXY, 0, dragObject,
-                    true)) {
-                return;
-            }
-        } else if (cellXY != null) {
-            // when dragging and dropping, just find the closest free spot
-            int[] result = layout.findNearestVacantArea(cellXY[0], cellXY[1], 1, 1, cellXY);
-            foundCellSpan = (result != null);
-        } else {
-            foundCellSpan = layout.findCellForSpan(cellXY, 1, 1);
-        }
-
-        if (!foundCellSpan) {
-            showOutOfSpaceMessage(isHotseatLayout(layout));
-        } else if (cellXY != null) {
-            LauncherModel.addItemToDatabase(this, info, container, screen, cellXY[0], cellXY[1], false);
-
-            if (!mRestoring) {
-                mWorkspace.addInScreen(view, container, screen, cellXY[0], cellXY[1], 1, 1,
-                        isWorkspaceLocked());
-            }
-        }
-    }
-
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -1424,6 +1476,9 @@ public final class Launcher extends Activity
             // When Launcher comes back to foreground, a different Activity might be responsible for
             // the app market intent, so refresh the icon
             updateAppMarketIcon();
+            // When Launcher comes back to foreground, a different Launcher might be made default
+            // so refresh the icon
+            updateOverflowMenuButton();
             clearTypedText();
         }
     }
@@ -1527,7 +1582,12 @@ public final class Launcher extends Activity
             closeSystemDialogs();
 
             final boolean drawerIntent = intent.hasCategory("com.cyanogenmod.trebuchet.APP_DRAWER");
-            mDrawerBackActivity = drawerIntent ? intent.getStringExtra("component") : "";
+            ActivityManager am = (ActivityManager) getSystemService(Activity.ACTIVITY_SERVICE);
+            try {
+                mDrawerBackActivity = am.getRunningTasks(2).get(1).topActivity.flattenToString();
+            } catch (Exception e) {
+                mDrawerBackActivity = "";
+            }
             if (mDrawerBackActivity.contains("trebuchet")) mDrawerBackActivity = "";
 
             final boolean alreadyOnHome =
@@ -1536,12 +1596,17 @@ public final class Launcher extends Activity
 
             Runnable processIntent = new Runnable() {
                 public void run() {
+                    if (mWorkspace == null) {
+                        // Can be cases where mWorkspace is null, this prevents a NPE
+                        return;
+                    }
                     Folder openFolder = mWorkspace.getOpenFolder();
                     // In all these cases, only animate if we're already on home
                     mWorkspace.exitWidgetResizeMode();
                     if (alreadyOnHome && mState == State.WORKSPACE && !mWorkspace.isTouchActive() &&
                             openFolder == null) {
                         mWorkspace.moveToDefaultScreen(true);
+                        mHotseat.moveToDefaultScreen(true);
                     }
 
                     closeFolder();
@@ -1578,18 +1643,6 @@ public final class Launcher extends Activity
                 processIntent.run();
             }
 
-        } else if (ACTION_LAUNCHER.equals(intent.getAction())) {
-            Bundle extras = intent.getExtras();
-            if (extras == null) {
-                return;
-            }
-            String actionString = extras.getString(Intent.EXTRA_TEXT);
-            LauncherAction.Action action = LauncherAction.Action.valueOf(actionString);
-            switch (action) {
-                case AllApps:
-                    showAllApps(true);
-                    break;
-            }
         }
     }
 
@@ -1604,7 +1657,7 @@ public final class Launcher extends Activity
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         outState.putInt(RUNTIME_STATE_CURRENT_SCREEN, mWorkspace.getNextPage());
-        outState.putInt(RUNTIME_STATE_CURRENT_HOTSEAT_SCREEN, mHotseat.getNextPage());
+        outState.putInt(RUNTIME_STATE_CURRENT_HOTSEAT_SCREEN, mHotseat.getScreenFromOrder(mHotseat.getCurrentPage()));
         super.onSaveInstanceState(outState);
 
         outState.putInt(RUNTIME_STATE, mState.ordinal());
@@ -1761,7 +1814,7 @@ public final class Launcher extends Activity
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        if (isWorkspaceLocked()) {
+        if (!isAllAppsVisible() && isWorkspaceLocked()) {
             return false;
         }
 
@@ -1790,7 +1843,8 @@ public final class Launcher extends Activity
                         return true;
                     }
             });
-
+        menu.add(0, MENU_LOCK_WORKSPACE, 0, !mLockWorkspace ? R.string.menu_lock_workspace : R.string.menu_unlock_workspace)
+            .setAlphabeticShortcut('L');
         menu.add(0, MENU_MANAGE_APPS, 0, R.string.menu_manage_apps)
             .setIcon(android.R.drawable.ic_menu_manage)
             .setIntent(manageApps)
@@ -1830,24 +1884,32 @@ public final class Launcher extends Activity
         menu.setGroupVisible(MENU_GROUP_WALLPAPER, !allAppsVisible);
         menu.setGroupVisible(MENU_GROUP_DRAWER, !allAppsVisible);
 
-        //Intent launcherIntent = new Intent(Intent.ACTION_MAIN);
-        //launcherIntent.addCategory(Intent.CATEGORY_HOME);
-        //launcherIntent.addCategory(Intent.CATEGORY_DEFAULT);
-        //ActivityInfo defaultLauncher = getPackageManager().resolveActivity(launcherIntent, PackageManager.MATCH_DEFAULT_ONLY).activityInfo;
+        menu.findItem(MENU_LOCK_WORKSPACE).setTitle(!mLockWorkspace ? R.string.menu_lock_workspace : R.string.menu_unlock_workspace);
+
+        Intent launcherIntent = new Intent(Intent.ACTION_MAIN);
+        launcherIntent.addCategory(Intent.CATEGORY_HOME);
+        launcherIntent.addCategory(Intent.CATEGORY_DEFAULT);
+        ActivityInfo defaultLauncher = getPackageManager().resolveActivity(launcherIntent, PackageManager.MATCH_DEFAULT_ONLY).activityInfo;
         // Hide preferences if not on CyanogenMod or not default launcher
         // (in which case preferences don't get shown in system settings)
-        //boolean preferencesVisible = !getPackageManager().hasSystemFeature("com.cyanogenmod.android") ||
-        //        !defaultLauncher.packageName.equals(getClass().getPackage().getName());
-        //menu.findItem(MENU_PREFERENCES).setVisible(preferencesVisible);
+        boolean preferencesVisible = !getPackageManager().hasSystemFeature("com.cyanogenmod.android") ||
+                !defaultLauncher.packageName.equals(getClass().getPackage().getName());
+        menu.findItem(MENU_PREFERENCES).setVisible(preferencesVisible);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-        case MENU_WALLPAPER_SETTINGS:
-            startWallpaper();
-            return true;
+            case MENU_WALLPAPER_SETTINGS:
+                startWallpaper();
+                return true;
+            case MENU_LOCK_WORKSPACE:
+                mLockWorkspace = !mLockWorkspace;
+                SharedPreferences.Editor editor = mSharedPrefs.edit();
+                editor.putBoolean("ui_general_lock_workspace", mLockWorkspace);
+                editor.commit();
+                return true;
         }
 
         return super.onOptionsItemSelected(item);
@@ -1873,26 +1935,6 @@ public final class Launcher extends Activity
         mPendingAddInfo.dropPos = null;
     }
 
-    void addAppWidgetFromPick(Intent data, long container, int screen) {
-        resetAddInfo();
-        mPendingAddInfo.container = container;
-        mPendingAddInfo.screen = screen;
-
-        int appWidgetId = data.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID);
-        if (appWidgetId == AppWidgetManager.INVALID_APPWIDGET_ID) {
-            Log.e(TAG, "Invalid appWidgetId sent");
-            return;
-        }
-
-        AppWidgetProviderInfo appWidget = mAppWidgetManager.getAppWidgetInfo(appWidgetId);
-
-        PendingAddWidgetInfo createItemInfo = new PendingAddWidgetInfo(appWidget, null, null);
-        createItemInfo.container = container;
-        createItemInfo.screen = screen;
-
-        addAppWidgetImpl(appWidgetId, createItemInfo, null, appWidget);
-    }
-
     void addAppWidgetImpl(final int appWidgetId, ItemInfo info, AppWidgetHostView boundWidget,
             AppWidgetProviderInfo appWidgetInfo) {
         if (appWidgetInfo.configure != null) {
@@ -1910,30 +1952,6 @@ public final class Launcher extends Activity
             // Exit spring loaded mode if necessary after adding the widget
             exitSpringLoadedDragModeDelayed(true, false, null);
         }
-    }
-
-    /**
-     * Process action from drop.
-     *
-     * @param action The launcher action
-     * @param screen The screen where it should be added
-     * @param cell The cell it should be added to, optional
-     * @param position The location on the screen where it was dropped, optional
-     */
-    void processActionFromDrop(LauncherAction.Action action, long container, int screen,
-            int[] cell, int[] loc) {
-        resetAddInfo();
-        mPendingAddInfo.container = container;
-        mPendingAddInfo.screen = screen;
-        mPendingAddInfo.dropPos = loc;
-
-        if (cell != null) {
-            mPendingAddInfo.cellX = cell[0];
-            mPendingAddInfo.cellY = cell[1];
-        }
-
-        addAction(action);
-        exitSpringLoadedDragModeDelayed(true, true, null);
     }
 
     /**
@@ -2021,7 +2039,21 @@ public final class Launcher extends Activity
     }
 
     void processShortcut(Intent intent) {
-        startActivityForResultSafely(intent, REQUEST_CREATE_SHORTCUT);
+        // Handle case where user selected "Applications"
+        String applicationName = getResources().getString(R.string.group_applications);
+        String shortcutName = intent.getStringExtra(Intent.EXTRA_SHORTCUT_NAME);
+
+        if (applicationName != null && applicationName.equals(shortcutName)) {
+            Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
+            mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+
+            Intent pickIntent = new Intent(Intent.ACTION_PICK_ACTIVITY);
+            pickIntent.putExtra(Intent.EXTRA_INTENT, mainIntent);
+            pickIntent.putExtra(Intent.EXTRA_TITLE, getText(R.string.title_select_application));
+            startActivityForResultSafely(pickIntent, REQUEST_PICK_APPLICATION);
+        } else {
+            startActivityForResultSafely(intent, REQUEST_CREATE_SHORTCUT);
+        }
     }
 
     void processWallpaper(Intent intent) {
@@ -2034,14 +2066,8 @@ public final class Launcher extends Activity
         folderInfo.title = getText(R.string.folder_name);
 
         // Update the model
-        if (container == LauncherSettings.Favorites.CONTAINER_HOTSEAT &&
-                getHotseat().hasVerticalHotseat()) {
-            cellX = getHotseat().getCellYFromOrder(cellY);
-            cellY = 0;
-        }
         LauncherModel.addItemToDatabase(Launcher.this, folderInfo, container, screen, cellX, cellY,
                 false);
-
         sFolders.put(folderInfo.id, folderInfo);
 
         // Create the view
@@ -2050,8 +2076,18 @@ public final class Launcher extends Activity
         if (mHideIconLabels) {
             newFolder.setTextVisible(false);
         }
-        mWorkspace.addInScreen(newFolder, container, screen, cellX, cellY, 1, 1,
-                isWorkspaceLocked());
+        int x = cellX, y = cellY;
+        if (container == LauncherSettings.Favorites.CONTAINER_HOTSEAT &&
+            getHotseat().hasVerticalHotseat()) {
+            // Note: If the destination of the new folder is the hotseat and
+            // the hotseat is in vertical mode, then we need to invert the xy position,
+            // so the addInScreen method will use the correct values to draw the new folder
+            // in the correct position
+            // We use the y in both case to determine the new position
+            x = getHotseat().getInverterCellXFromOrder(y);
+            y = getHotseat().getInverterCellYFromOrder(y);
+        }
+        mWorkspace.addInScreen(newFolder, container, screen, x, y, 1, 1, isWorkspaceLocked());
         return newFolder;
     }
 
@@ -2084,7 +2120,7 @@ public final class Launcher extends Activity
                 case KeyEvent.KEYCODE_HOME:
                     return true;
                 case KeyEvent.KEYCODE_VOLUME_DOWN:
-                    if (doesFileExist(DUMP_STATE_PROPERTY)) {
+                    if (isPropertyEnabled(DUMP_STATE_PROPERTY)) {
                         dumpState();
                         return true;
                     }
@@ -2154,26 +2190,23 @@ public final class Launcher extends Activity
         }
 
         Object tag = v.getTag();
-        if (tag instanceof LauncherActionInfo) {
-            LauncherAction.Action action = ((LauncherActionInfo) tag).action;
-            switch (action) {
-                case AllApps:
-                    showAllApps(true);
-                    break;
-            }
-        } else if (tag instanceof ShortcutInfo) {
-            // Open shortcut
-            final Intent intent = ((ShortcutInfo) tag).intent;
-            int[] pos = new int[2];
-            v.getLocationOnScreen(pos);
-            intent.setSourceBounds(new Rect(pos[0], pos[1],
-                    pos[0] + v.getWidth(), pos[1] + v.getHeight()));
+        if (tag instanceof ShortcutInfo) {
+            if (((ShortcutInfo) tag).itemType == LauncherSettings.Favorites.ITEM_TYPE_ALLAPPS) {
+                showAllApps(true);
+            } else {
+                // Open shortcut
+                final Intent intent = ((ShortcutInfo) tag).intent;
+                int[] pos = new int[2];
+                v.getLocationOnScreen(pos);
+                intent.setSourceBounds(new Rect(pos[0], pos[1],
+                        pos[0] + v.getWidth(), pos[1] + v.getHeight()));
 
-            boolean success = startActivitySafely(v, intent, tag);
+                boolean success = startActivitySafely(v, intent, tag);
 
-            if (success && v instanceof BubbleTextView) {
-                mWaitingForResume = (BubbleTextView) v;
-                mWaitingForResume.setStayPressed(true);
+                if (success && v instanceof BubbleTextView) {
+                    mWaitingForResume = (BubbleTextView) v;
+                    mWaitingForResume.setStayPressed(true);
+                }
             }
         } else if (tag instanceof FolderInfo) {
             if (v instanceof FolderIcon) {
@@ -2187,14 +2220,10 @@ public final class Launcher extends Activity
     public boolean onTouch(View v, MotionEvent event) {
         if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
             Object tag = v.getTag();
-            if (tag instanceof LauncherActionInfo) {
-                LauncherAction.Action action = ((LauncherActionInfo) tag).action;
-                switch (action) {
-                    case AllApps:
-                        v.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY,
-                                HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING);
-                        break;
-                }
+            if (tag instanceof ShortcutInfo &&
+                    ((ShortcutInfo)tag).itemType == LauncherSettings.Favorites.ITEM_TYPE_ALLAPPS) {
+               v.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY,
+                        HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING);
             }
         }
         return false;
@@ -2315,7 +2344,7 @@ public final class Launcher extends Activity
         }
     }
 
-    void startShortcutUninstallActivity(ShortcutInfo shortcutInfo) {
+    void startShortcutUninstallActivity(final ShortcutInfo shortcutInfo) {
         PackageManager pm = getPackageManager();
         ResolveInfo resolveInfo = pm.resolveActivity(shortcutInfo.intent, 0);
         if ((resolveInfo.activityInfo.applicationInfo.flags &
@@ -2333,6 +2362,16 @@ public final class Launcher extends Activity
                     Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
             startActivity(intent);
         }
+
+        // Restore the shortcut view prior to uninstall. Otherwise if the
+        // use cancels the uninstall process, the shortcut was removed from
+        // the workspace
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                restoreShortcut(shortcutInfo);
+            }
+        });
     }
 
     boolean startActivity(View v, Intent intent, Object tag) {
@@ -2598,10 +2637,15 @@ public final class Launcher extends Activity
                 // User long pressed on empty space
                 mWorkspace.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS,
                         HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING);
-                showAddDialog(longClickCellInfo);
+
+                startWallpaper();
             } else {
                 if (!(itemUnderLongClick instanceof Folder)) {
-                    // User long pressed on an item
+                    // User long pressed on an item (only if workspace is not locked)
+                    if (mLockWorkspace) {
+                        Toast.makeText(this, getString(R.string.workspace_locked), Toast.LENGTH_SHORT).show();
+                        return false;
+                    }
                     mWorkspace.startDrag(longClickCellInfo);
                 }
             }
@@ -2618,6 +2662,10 @@ public final class Launcher extends Activity
     }
     SearchDropTargetBar getSearchBar() {
         return mSearchDropTargetBar;
+    }
+
+    boolean getLockWorkspace() {
+        return mLockWorkspace;
     }
 
     /**
@@ -2639,61 +2687,8 @@ public final class Launcher extends Activity
         return mWorkspace;
     }
 
-    @Override
-    protected Dialog onCreateDialog(int id) {
-        switch (id) {
-            case DIALOG_CREATE_SHORTCUT:
-                return new CreateShortcut().createDialog();
-            case DIALOG_CREATE_ACTION:
-                return new CreateAction().createDialog();
-        }
-
-        return super.onCreateDialog(id);
-    }
-
-    @Override
-    protected void onPrepareDialog(int id, Dialog dialog) {
-        switch (id) {
-            case DIALOG_CREATE_SHORTCUT:
-                break;
-            case DIALOG_CREATE_ACTION:
-                break;
-        }
-    }
-
-    private void showAddDialog(CellLayout.CellInfo cell) {
-        resetAddInfo();
-        mPendingAddInfo.container = cell.container;
-        mPendingAddInfo.screen = cell.screen;
-        mPendingAddInfo.cellX = cell.cellX;
-        mPendingAddInfo.cellY = cell.cellY;
-        mWaitingForResult = true;
-        showDialog(DIALOG_CREATE_SHORTCUT);
-    }
-
-    void pickApplication() {
-        Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
-        mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
-
-        Intent pickIntent = new Intent(Intent.ACTION_PICK_ACTIVITY);
-        pickIntent.putExtra(Intent.EXTRA_INTENT, mainIntent);
-        pickIntent.putExtra(Intent.EXTRA_TITLE, getText(R.string.title_select_application));
-        startActivityForResultSafely(pickIntent, REQUEST_PICK_APPLICATION);
-    }
-
-    private void pickShortcut() {
-        Intent pickIntent = new Intent(Intent.ACTION_PICK_ACTIVITY);
-        pickIntent.putExtra(Intent.EXTRA_INTENT, new Intent(Intent.ACTION_CREATE_SHORTCUT));
-        pickIntent.putExtra(Intent.EXTRA_TITLE, getText(R.string.title_select_shortcut));
-
-        startActivityForResult(pickIntent, REQUEST_PICK_SHORTCUT);
-    }
-
-    private void pickAction() {
-        showDialog(DIALOG_CREATE_ACTION);
-    }
-
     // Now a part of LauncherModel.Callbacks. Used to reorder loading steps.
+    @Override
     public boolean isAllAppsVisible() {
         return (mState == State.APPS_CUSTOMIZE) || (mOnResumeState == State.APPS_CUSTOMIZE);
     }
@@ -2701,7 +2696,7 @@ public final class Launcher extends Activity
     /**
      * Helper method for the cameraZoomIn/cameraZoomOut animations
      * @param view The view being animated
-     *
+     * @param scaleFactor The scale factor used for the zoom
      */
     private void setPivotsForZoom(View view) {
         view.setPivotX(view.getWidth() / 2.0f);
@@ -2723,6 +2718,14 @@ public final class Launcher extends Activity
         updateWallpaperVisibility(visible);
     }
 
+    private void setWorkspaceBackground(boolean workspace) {
+        if (mDrawerShowWallpaper) return;
+        if (mLauncherView != null) {
+            mLauncherView.setBackground(workspace ?
+                    mWorkspaceBackgroundDrawable : mBlackBackgroundDrawable);
+        }
+    }
+
     void updateWallpaperVisibility(boolean visible) {
         if (mDrawerShowWallpaper) return;
         int wpflags = visible && mWallpaperVisible ? WindowManager.LayoutParams.FLAG_SHOW_WALLPAPER : 0;
@@ -2731,6 +2734,7 @@ public final class Launcher extends Activity
         if (wpflags != curflags) {
             getWindow().setFlags(wpflags, WindowManager.LayoutParams.FLAG_SHOW_WALLPAPER);
         }
+        setWorkspaceBackground(visible);
     }
 
     private void updateFullscreenMode(boolean enable) {
@@ -2874,7 +2878,7 @@ public final class Launcher extends Activity
             mStateAnimation = LauncherAnimUtils.createAnimatorSet();
             mStateAnimation.play(scaleAnim).after(startDelay);
             mStateAnimation.play(alphaAnim).after(startDelay);
-            if (mFadeOut) mStateAnimation.play(alphaAnimOut);
+            if (mFadeOutDrawer) mStateAnimation.play(alphaAnimOut);
 
             mStateAnimation.addListener(new AnimatorListenerAdapter() {
                 boolean animationCancelled = false;
@@ -2883,7 +2887,7 @@ public final class Launcher extends Activity
                 public void onAnimationStart(Animator animation) {
                     updateWallpaperVisibility(!mWorkspace.isRenderingWallpaper());
 
-                    if (mWorkspace != null && !springLoaded && !LauncherApplication.isScreenLarge()) {
+                    if (mWorkspace != null && !springLoaded) {
                         // Hide the workspace scrollbar
                         mWorkspace.hideScrollingIndicator(true);
                         hideDockDivider(true);
@@ -2975,7 +2979,7 @@ public final class Launcher extends Activity
             toView.setTranslationY(0.0f);
             toView.setScaleX(1.0f);
             toView.setScaleY(1.0f);
-            if (mFadeOut) toView.setAlpha(1f);
+            if (mFadeOutDrawer) toView.setAlpha(1f);
             toView.setVisibility(View.VISIBLE);
             toView.bringToFront();
 
@@ -3062,7 +3066,7 @@ public final class Launcher extends Activity
 
             mStateAnimation = LauncherAnimUtils.createAnimatorSet();
 
-            if (mFadeOut && !(toState == State.WORKSPACE && mState == State.APPS_CUSTOMIZE_SPRING_LOADED)) {
+            if (mFadeOutDrawer && !(toState == State.WORKSPACE && mState == State.APPS_CUSTOMIZE_SPRING_LOADED)) {
                 mStateAnimation.play(alphaAnimOut);
             }
 
@@ -3165,7 +3169,7 @@ public final class Launcher extends Activity
         }
 
         mWorkspace.flashScrollingIndicator(animated);
-        if (mFadeOut) mWorkspace.setAlpha(1f);
+        if (mFadeOutDrawer) mWorkspace.setAlpha(1f);
 
         // Change the state *after* we've called all the transition code
         mState = State.WORKSPACE;
@@ -3268,7 +3272,6 @@ public final class Launcher extends Activity
                 mDividerAnimator.start();
             }
         }
-
     }
 
     void showDockDivider(boolean animated) {
@@ -3569,17 +3572,7 @@ public final class Launcher extends Activity
         // Find the app market activity by resolving an intent.
         // (If multiple app markets are installed, it will return the ResolverActivity.)
         ComponentName activityName = intent.resolveActivity(getPackageManager());
-
-        // Check to see if overflow menu is shown
-        Intent launcherIntent = new Intent(Intent.ACTION_MAIN);
-        launcherIntent.addCategory(Intent.CATEGORY_HOME);
-        launcherIntent.addCategory(Intent.CATEGORY_DEFAULT);
-        ActivityInfo defaultLauncher = getPackageManager().resolveActivity(launcherIntent, PackageManager.MATCH_DEFAULT_ONLY).activityInfo;
-        // Hide preferences if not on CyanogenMod or not default launcher
-        // (in which case preferences don't get shown in system settings)
-        boolean preferencesVisible = !getPackageManager().hasSystemFeature("com.cyanogenmod.android") ||
-                !defaultLauncher.packageName.equals(getClass().getPackage().getName());
-        if (activityName != null && (ViewConfiguration.get(this).hasPermanentMenuKey() || !preferencesVisible)) {
+        if (activityName != null) {
             int coi = getCurrentOrientationIndexForGlobalIcons();
             mAppMarketIntent = intent;
             sAppMarketIcon[coi] = updateTextButtonWithIconFromExternalActivity(
@@ -3629,156 +3622,10 @@ public final class Launcher extends Activity
         // (in which case preferences don't get shown in system settings)
         boolean preferencesVisible = !getPackageManager().hasSystemFeature("com.cyanogenmod.android") ||
                 !defaultLauncher.packageName.equals(getClass().getPackage().getName());
-        if (ViewConfiguration.get(this).hasPermanentMenuKey() || !preferencesVisible) {
-            overflowMenuButton.setVisibility(View.GONE);
-            overflowMenuButton.setEnabled(false);
-        } else {
-            overflowMenuButton.setVisibility(View.VISIBLE);
-        }
-    }
 
-    /**
-     * Displays the shortcut creation dialog and launches, if necessary, the
-     * appropriate activity.
-     */
-    private class CreateShortcut implements DialogInterface.OnClickListener,
-            DialogInterface.OnCancelListener, DialogInterface.OnDismissListener,
-            DialogInterface.OnShowListener {
-
-        private AddAdapter mAdapter;
-
-        Dialog createDialog() {
-            mAdapter = new AddAdapter(Launcher.this);
-
-            final AlertDialog.Builder builder = new AlertDialog.Builder(Launcher.this,
-                    AlertDialog.THEME_HOLO_DARK);
-            builder.setAdapter(mAdapter, this);
-
-            AlertDialog dialog = builder.create();
-            dialog.setOnCancelListener(this);
-            dialog.setOnDismissListener(this);
-            dialog.setOnShowListener(this);
-
-            return dialog;
-        }
-
-        public void onCancel(DialogInterface dialog) {
-            mWaitingForResult = false;
-            cleanup();
-        }
-
-        public void onDismiss(DialogInterface dialog) {
-            mWaitingForResult = false;
-            cleanup();
-        }
-
-        private void cleanup() {
-            try {
-                dismissDialog(DIALOG_CREATE_SHORTCUT);
-            } catch (Exception e) {
-                // An exception is thrown if the dialog is not visible, which is fine
-            }
-        }
-
-        /**
-         * Handle the action clicked in the "Add to home" dialog.
-         */
-        public void onClick(DialogInterface dialog, int which) {
-            cleanup();
-
-            AddAdapter.ListItem item = (AddAdapter.ListItem) mAdapter.getItem(which);
-            switch (item.actionTag) {
-                case AddAdapter.ITEM_APPLICATION: {
-                    pickApplication();
-                    break;
-                }
-                case AddAdapter.ITEM_SHORTCUT: {
-                    pickShortcut();
-                    break;
-                }
-                case AddAdapter.ITEM_ACTION: {
-                    pickAction();
-                    break;
-                }
-                case AddAdapter.ITEM_APPWIDGET: {
-                    int appWidgetId = Launcher.this.mAppWidgetHost.allocateAppWidgetId();
-
-                    String intent = AppWidgetManager.ACTION_APPWIDGET_PICK;
-                    Intent pickIntent = new Intent(intent);
-                    pickIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
-
-                    // start the pick activity
-                    startActivityForResult(pickIntent, REQUEST_PICK_APPWIDGET);
-                    break;
-                }
-                case AddAdapter.ITEM_WALLPAPER: {
-                    startWallpaper();
-                    break;
-                }
-            }
-        }
-
-        public void onShow(DialogInterface dialog) {
-            mWaitingForResult = true;
-        }
-    }
-
-    /**
-     * Displays the shortcut creation dialog and launches, if necessary, the
-     * appropriate activity.
-     */
-    private class CreateAction implements DialogInterface.OnClickListener,
-            DialogInterface.OnCancelListener, DialogInterface.OnDismissListener,
-            DialogInterface.OnShowListener {
-
-        private LauncherAction.AddAdapter mAdapter;
-
-        Dialog createDialog() {
-            mAdapter = new LauncherAction.AddAdapter(Launcher.this);
-
-            final AlertDialog.Builder builder = new AlertDialog.Builder(Launcher.this,
-                    AlertDialog.THEME_HOLO_DARK);
-            builder.setAdapter(mAdapter, this);
-
-            AlertDialog dialog = builder.create();
-            dialog.setOnCancelListener(this);
-            dialog.setOnDismissListener(this);
-            dialog.setOnShowListener(this);
-
-            return dialog;
-        }
-
-        public void onCancel(DialogInterface dialog) {
-            mWaitingForResult = false;
-            cleanup();
-        }
-
-        public void onDismiss(DialogInterface dialog) {
-            mWaitingForResult = false;
-            cleanup();
-        }
-
-        private void cleanup() {
-            try {
-                dismissDialog(DIALOG_CREATE_ACTION);
-            } catch (Exception e) {
-                // An exception is thrown if the dialog is not visible, which is fine
-            }
-        }
-
-        /**
-         * Handle the action clicked in the "Add to home" dialog.
-         */
-        public void onClick(DialogInterface dialog, int which) {
-            cleanup();
-
-            LauncherAction.AddAdapter.ItemInfo item = (LauncherAction.AddAdapter.ItemInfo) mAdapter.getItem(which);
-            addAction(item.action);
-        }
-
-        public void onShow(DialogInterface dialog) {
-            mWaitingForResult = true;
-        }
+        boolean disabled = ViewConfiguration.get(this).hasPermanentMenuKey() || !preferencesVisible;
+        overflowMenuButton.setVisibility(disabled ? View.GONE : View.VISIBLE);
+        overflowMenuButton.setEnabled(!disabled);
     }
 
     /**
@@ -3888,8 +3735,9 @@ public final class Launcher extends Activity
             switch (item.itemType) {
                 case LauncherSettings.Favorites.ITEM_TYPE_APPLICATION:
                 case LauncherSettings.Favorites.ITEM_TYPE_SHORTCUT:
+                case LauncherSettings.Favorites.ITEM_TYPE_ALLAPPS:
                     ShortcutInfo info = (ShortcutInfo) item;
-                    String uri = info.intent.toUri(0);
+                    String uri = info.intent != null ? info.intent.toUri(0) : null;
                     View shortcut = createShortcut(info);
                     workspace.addInScreen(shortcut, item.container, item.screen, item.cellX,
                             item.cellY, 1, 1, false);
@@ -3909,12 +3757,6 @@ public final class Launcher extends Activity
                             mNewShortcutAnimateViews.add(shortcut);
                         }
                     }
-                    break;
-                case LauncherSettings.Favorites.ITEM_TYPE_LAUNCHER_ACTION:
-                    LauncherActionInfo launcherActionInfo = (LauncherActionInfo) item;
-                    View launcherAction = createShortcut(launcherActionInfo);
-                    workspace.addInScreen(launcherAction, item.container, item.screen, item.cellX,
-                            item.cellY, 1, 1, false);
                     break;
                 case LauncherSettings.Favorites.ITEM_TYPE_FOLDER:
                     FolderIcon newFolder = FolderIcon.fromXml(R.layout.folder_icon, this,
@@ -4060,7 +3902,7 @@ public final class Launcher extends Activity
             public int compare(View a, View b) {
                 CellLayout.LayoutParams alp = (CellLayout.LayoutParams) a.getLayoutParams();
                 CellLayout.LayoutParams blp = (CellLayout.LayoutParams) b.getLayoutParams();
-                int cellCountX = LauncherModel.getCellCountX();
+                int cellCountX = LauncherModel.getWorkspaceCellCountX();
                 return (alp.cellY * cellCountX + alp.cellX) - (blp.cellY * cellCountX + blp.cellX);
             }
         });
@@ -4107,9 +3949,6 @@ public final class Launcher extends Activity
                             .commit();
             }
         }.start();
-
-        // Hide overflow menu on devices with a hardkey
-        //updateOverflowMenuButton();
     }
 
     @Override
@@ -4151,6 +3990,9 @@ public final class Launcher extends Activity
             // list of applications without waiting for any progress bars views to be hidden.
             setAllAppsRunnable.run();
         }
+
+        // Hide overflow menu on devices with a hardkey
+        updateOverflowMenuButton();
     }
 
     /**
@@ -4160,8 +4002,6 @@ public final class Launcher extends Activity
      */
     public void bindAppsAdded(ArrayList<ApplicationInfo> apps) {
         setLoadOnResume();
-        removeDialog(DIALOG_CREATE_SHORTCUT);
-        removeDialog(DIALOG_CREATE_ACTION);
 
         if (mAppsCustomizeContent != null) {
             mAppsCustomizeContent.addApps(apps);
@@ -4243,6 +4083,11 @@ public final class Launcher extends Activity
         return oriMap[(d.getRotation() + indexOffset) % 4];
     }
 
+    public boolean isRotationEnabled() {
+        boolean enableRotation = sForceEnableRotation ||
+                getResources().getBoolean(R.bool.allow_rotation);
+        return enableRotation;
+    }
     public void lockScreenOrientation() {
         if (mAutoRotate) {
             setRequestedOrientation(mapConfigurationOriActivityInfoOri(getResources()
@@ -4268,7 +4113,7 @@ public final class Launcher extends Activity
     /* Cling related */
     private boolean isClingsEnabled() {
         // disable clings when running in a test harness
-        return false;//!ActivityManager.isRunningInTestHarness();
+        return !ActivityManager.isRunningInTestHarness();
 
     }
 
@@ -4304,8 +4149,9 @@ public final class Launcher extends Activity
     }
 
     private void dismissCling(final Cling cling, final String flag, int duration) {
-        if (cling != null && cling.getVisibility() == View.VISIBLE) {
-            cling.dismiss();
+        // To catch cases where siblings of top-level views are made invisible, just check whether
+        // the cling is directly set to GONE before dismissing it.
+        if (cling != null && cling.getVisibility() != View.GONE) {
             ObjectAnimator anim = LauncherAnimUtils.ofFloat(cling, "alpha", 0f);
             anim.setDuration(duration);
             anim.addListener(new AnimatorListenerAdapter() {

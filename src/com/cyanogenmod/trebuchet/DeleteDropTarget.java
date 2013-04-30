@@ -38,9 +38,6 @@ import android.view.animation.AnimationUtils;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.LinearInterpolator;
 
-import com.cyanogenmod.trebuchet.preference.PreferencesProvider;
-import com.cyanogenmod.trebuchet.R;
-
 public class DeleteDropTarget extends ButtonDropTarget {
     private static final int DELETE_ANIMATION_DURATION = 285;
     private static final int FLING_DELETE_ANIMATION_DURATION = 350;
@@ -93,10 +90,10 @@ public class DeleteDropTarget extends ButtonDropTarget {
         mRemoveNormalDrawable = r.getDrawable(R.drawable.ic_launcher_clear_normal_holo);
 
         // Remove the text in landscape
-        boolean bottomDock = PreferencesProvider.Interface.Dock.getLandscapeDockOnBottom();
         int orientation = getResources().getConfiguration().orientation;
+        boolean transposeLayout = getResources().getBoolean(R.bool.hotseat_transpose_layout_with_orientation);
         if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            if (!bottomDock) {
+            if (transposeLayout) {
                 setText("");
             }
         }
@@ -115,7 +112,7 @@ public class DeleteDropTarget extends ButtonDropTarget {
                 switch (addInfo.itemType) {
                     case LauncherSettings.Favorites.ITEM_TYPE_SHORTCUT:
                     case LauncherSettings.Favorites.ITEM_TYPE_APPWIDGET:
-                    case LauncherSettings.Favorites.ITEM_TYPE_LAUNCHER_ACTION:
+                    case LauncherSettings.Favorites.ITEM_TYPE_ALLAPPS:
                         return true;
                 }
             }
@@ -144,13 +141,19 @@ public class DeleteDropTarget extends ButtonDropTarget {
 
     @Override
     public boolean acceptDrop(DragObject d) {
-        // We can remove everything including App shortcuts, folders, widgets, etc.
+        if (d.dragInfo instanceof ShortcutInfo) {
+            if (((ShortcutInfo) d.dragInfo).itemType == LauncherSettings.Favorites.ITEM_TYPE_ALLAPPS) {
+                d.deferDragViewCleanupPostAnimation = false;
+                return false;
+            }
+        }
         return true;
     }
 
     @Override
     public void onDragStart(DragSource source, Object info, int dragAction) {
         boolean isUninstall = false;
+        boolean isVisible = true;
 
         // If we are dragging an application from AppsCustomize, only show the uninstall control if we
         // can delete the app (it was downloaded)
@@ -162,12 +165,14 @@ public class DeleteDropTarget extends ButtonDropTarget {
         } else if (isWorkspaceOrFolderApplication(source, info)) {
             ShortcutInfo shortcutInfo = (ShortcutInfo) info;
             PackageManager pm = getContext().getPackageManager();
-            if (shortcutInfo.itemType != LauncherSettings.Favorites.ITEM_TYPE_LAUNCHER_ACTION) {
+            if (shortcutInfo.itemType != LauncherSettings.Favorites.ITEM_TYPE_ALLAPPS) {
                 ResolveInfo resolveInfo = pm.resolveActivity(shortcutInfo.intent, 0);
                 if (resolveInfo != null && (resolveInfo.activityInfo.applicationInfo.flags &
                         android.content.pm.ApplicationInfo.FLAG_SYSTEM) == 0) {
                     isUninstall = true;
                 }
+            } else {
+                isVisible = false;
             }
         }
 
@@ -175,12 +180,12 @@ public class DeleteDropTarget extends ButtonDropTarget {
         mCurrentDrawable = getCompoundDrawables()[0];
 
         mUninstall = isUninstall;
-        mActive = true;
+        mActive = isVisible;
         mMode = MODE_DELETE;
 
         setTextColor(mOriginalTextColor);
         resetHoverColor();
-        ((ViewGroup) getParent()).setVisibility(View.VISIBLE);
+        ((ViewGroup) getParent()).setVisibility(isVisible ? View.VISIBLE : View.GONE);
         if (getText().length() > 0) {
             if (isAllAppsItem(source, info)) {
                 setText(R.string.cancel_target_label);
@@ -427,8 +432,7 @@ public class DeleteDropTarget extends ButtonDropTarget {
         }
     }
     private AnimatorUpdateListener createFlingAlongVectorAnimatorListener(final DragLayer dragLayer,
-            DragObject d, PointF vel, final long startTime, final int duration,
-            ViewConfiguration config) {
+            DragObject d, PointF vel, final long startTime) {
         final Rect from = new Rect();
         dragLayer.getViewRectRelativeToSelf(d.dragView, from);
 
@@ -483,8 +487,7 @@ public class DeleteDropTarget extends ButtonDropTarget {
         if (mFlingDeleteMode == MODE_FLING_DELETE_TO_TRASH) {
             updateCb = createFlingToTrashAnimatorListener(dragLayer, d, vel, config);
         } else if (mFlingDeleteMode == MODE_FLING_DELETE_ALONG_VECTOR) {
-            updateCb = createFlingAlongVectorAnimatorListener(dragLayer, d, vel, startTime,
-                    duration, config);
+            updateCb = createFlingAlongVectorAnimatorListener(dragLayer, d, vel, startTime);
         }
         Runnable onAnimationEndRunnable = new Runnable() {
             @Override

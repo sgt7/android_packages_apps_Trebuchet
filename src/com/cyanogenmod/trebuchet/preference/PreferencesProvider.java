@@ -85,9 +85,6 @@ public final class PreferencesProvider {
             public static boolean getShowSearchBar() {
                 return getBoolean("ui_homescreen_general_search", true);
             }
-            public static boolean getResizeAnyWidget() {
-                return getBoolean("ui_homescreen_general_resize_any_widget", false);
-            }
             public static boolean getHideIconLabels() {
                 return getBoolean("ui_homescreen_general_hide_icon_labels", false);
             }
@@ -111,8 +108,8 @@ public final class PreferencesProvider {
                 public static boolean getScrollWallpaper() {
                     return getBoolean("ui_homescreen_scrolling_scroll_wallpaper", true);
                 }
-                public static boolean getWallpaperHack() {
-                    return getBoolean("ui_homescreen_scrolling_wallpaper_hack", false);
+                public static boolean getWallpaperHack(boolean def) {
+                    return getBoolean("ui_homescreen_scrolling_wallpaper_hack", def);
                 }
                 public static int getWallpaperSize() {
                     return getInt("ui_homescreen_scrolling_wallpaper_size", 2);
@@ -150,43 +147,8 @@ public final class PreferencesProvider {
             public static int getIconScale(int def) {
                 return getInt("ui_drawer_icon_scale", def);
             }
-            public static boolean getDrawerShowWallpaper() {
-                return true;//getBoolean("ui_drawer_background_show_wallpaper", false);
-            }
             public static int getDrawerColor() {
                 return getInt("ui_drawer_background", 0xFF000000);
-            }
-            public static int getCellCountX(int def) {
-                String[] values = getString("ui_drawer_grid", "0|" + def).split("\\|");
-                try {
-                    return Integer.parseInt(values[1]);
-                } catch (NumberFormatException e) {
-                    return def;
-                }
-            }
-            public static int getCellCountY(int def) {
-                String[] values = getString("ui_drawer_grid", def + "|0").split("\\|");
-                try {
-                    return Integer.parseInt(values[0]);
-                } catch (NumberFormatException e) {
-                    return def;
-                }
-            }
-            public static int getCellCountXLand(int def) {
-                String[] values = getString("ui_drawer_grid_land", "0|" + def).split("\\|");
-                try {
-                    return Integer.parseInt(values[1]);
-                } catch (NumberFormatException e) {
-                    return def;
-                }
-            }
-            public static int getCellCountYLand(int def) {
-                String[] values = getString("ui_drawer_grid_land", def + "|0").split("\\|");
-                try {
-                    return Integer.parseInt(values[0]);
-                } catch (NumberFormatException e) {
-                    return def;
-                }
             }
             public static int getWidgetCountX(int def) {
                 String[] values = getString("ui_app_widget_grid", "0|" + def).split("\\|");
@@ -244,7 +206,7 @@ public final class PreferencesProvider {
                     return AppsCustomizePagedView.TransitionEffect.Standard;
                 }
                 public static boolean getFadeInAdjacentScreens() {
-                    return getBoolean("ui_drawer_scrolling_fade_adjacent_screens", true);
+                    return getBoolean("ui_drawer_scrolling_fade_adjacent_screens", false);
                 }
             }
             public static class Indicator {
@@ -279,10 +241,6 @@ public final class PreferencesProvider {
             public static boolean getShowDivider() {
                 return getBoolean("ui_dock_divider", true);
             }
-            public static boolean getLandscapeDockOnBottom() {
-                return getBoolean("ui_land_dock_bottom",
-                        LauncherApplication.isScreenXLarge() ? true : false);
-            }
         }
 
         public static class Icons {
@@ -304,6 +262,9 @@ public final class PreferencesProvider {
             public static boolean getAutoRotate(boolean def) {
                 return getBoolean("ui_general_orientation", def);
             }
+            public static boolean getLockWorkspace(boolean def) {
+                return getBoolean("ui_general_lock_workspace", def);
+            }
             public static boolean getFullscreenMode() {
                 return getBoolean("ui_general_fullscreen", false);
             }
@@ -314,4 +275,3 @@ public final class PreferencesProvider {
 
     }
 }
-

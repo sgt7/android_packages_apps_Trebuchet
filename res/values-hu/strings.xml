@@ -29,6 +29,7 @@
     <string name="widgets_tab_label" msgid="9145860100000983599">"Modulok"</string>
     <string name="long_press_widget_to_add" msgid="7395697462851217506">"Modul felvételéhez érintse meg, és tartsa lenyomva"</string>
     <string name="market" msgid="2652226429823445833">"Bolt"</string>
+    <string name="menu">Menü</string>
     <string name="external_drop_widget_error" msgid="2285187188524172774">"Nem lehet elemeket dobni erre a Kezdőképernyőre."</string>
     <string name="external_drop_widget_pick_title" msgid="7040647073452295370">"A létrehozáshoz válasszon modult"</string>
     <string name="rename_folder_label" msgid="5646236631298452787">"Mappa neve"</string>
@@ -39,7 +40,6 @@
     <string name="group_applications" msgid="2103752818818161976">"Alkalmazások"</string>
     <string name="group_shortcuts" msgid="9133529424900391877">"Parancsikonok"</string>
     <string name="group_widgets" msgid="6704978494073105844">"Modulok"</string>
-    <string name="group_actions">Műveletek</string>
     <string name="group_wallpapers" msgid="1568191644272224858">"Háttérképek"</string>
     <string name="completely_out_of_space" msgid="1759078539443491182">"Nincs több hely a Kezdőképernyőkön."</string>
     <string name="out_of_space" msgid="8365249326091984698">"Nincs több hely ezen a főoldalon."</string>
@@ -163,13 +163,11 @@
     <string name="preferences_interface_homescreen_general_stretch_screens_title">Képernyő kiterjesztése</string>
     <string name="preferences_interface_homescreen_general_stretch_screens_summary">Kezdőképernyők kiterjesztése a kijelző kitöltéséhez</string>
     <string name="preferences_interface_homescreen_general_search_summary">Állandó keresősáv engedélyezése</string>
-    <string name="preferences_interface_homescreen_general_resize_any_widget_title">Átméretezhető modulok</string>
-    <string name="preferences_interface_homescreen_general_resize_any_widget_summary">Modulok átméretezésének engedélyezése a kezdőképernyőn</string>
     <string name="preferences_interface_homescreen_general_hide_icon_labels_title">Ikon feliratok elrejtése</string>
     <string name="preferences_interface_homescreen_general_hide_icon_labels_summary">Elrejti a kezdőképernyőn lévő ikonok neveit</string>
     <string name="preferences_interface_homescreen_scrolling_category">Kinézet</string>
     <string name="preferences_interface_homescreen_scrolling_transition_effect_title">Lapozás</string>
-    <string name="preferences_interface_homescreen_scrolling_transition_effect_summary">Válassza ki, milyen effektel váltson a kezdőképernyők között</string>
+    <string name="preferences_interface_homescreen_scrolling_transition_effect_summary">Válassza ki, milyen effekttel váltson a kezdőképernyők között</string>
     <string name="preferences_interface_homescreen_scrolling_scroll_wallpaper_title">Háttérkép görgetése</string>
     <string name="preferences_interface_homescreen_scrolling_scroll_wallpaper_summary">Háttérkép görgetése a kezdőképernyők közti váltások során</string>
     <string name="preferences_interface_homescreen_scrolling_wallpaper_hack_title">Háttérkép gyors kirajzolása</string>
@@ -182,7 +180,7 @@
     <string name="preferences_interface_homescreen_scrolling_show_outlines_summary">Kezdőképernyő körvonalának megjelenítése váltás közben</string>
     <string name="preferences_interface_homescreen_indicator_category">Jelzések</string>
     <string name="preferences_interface_homescreen_indicator_enable_title">Aktuális képernyő</string>
-    <string name="preferences_interface_homescreen_indicator_enable_summary">Aktuális képernyő jelzése a oldal alján</string>
+    <string name="preferences_interface_homescreen_indicator_enable_summary">Aktuális képernyő jelzése az oldal alján</string>
     <string name="preferences_interface_homescreen_indicator_fade_title">Képernyőjelölő</string>
     <string name="preferences_interface_homescreen_indicator_fade_summary">Csak képernyőváltáskor látszik</string>
     <string name="preferences_interface_homescreen_indicator_position_title">Jelölő helye</string>
@@ -200,7 +198,7 @@
     <string name="preferences_interface_drawer_widgets_join_apps_summary">Alkalmazások és modulok között folyamatos lapozással való váltás</string>
     <string name="preferences_interface_drawer_scrolling_category">Kinézet</string>
     <string name="preferences_interface_drawer_scrolling_transition_effect_title">Lapozás</string>
-    <string name="preferences_interface_drawer_scrolling_transition_effect_summary">Válassza ki, milyen effektel váltson az alkalmazásképernyők között</string>
+    <string name="preferences_interface_drawer_scrolling_transition_effect_summary">Válassza ki, milyen effekttel váltson az alkalmazásképernyők között</string>
     <string name="preferences_interface_drawer_scrolling_fade_adjacent_screens_title">Elhalványuló váltás</string>
     <string name="preferences_interface_drawer_scrolling_fade_adjacent_screens_summary">Váltáskor elhalványulnak az egymás melletti alkalmazásképernyők</string>
     <string name="preferences_interface_drawer_indicator_category">Jelzések</string>
@@ -213,12 +211,16 @@
 
     <!-- Dock -->
     <string name="preferences_interface_dock_title">Tálca</string>
+    <string name="preferences_interface_dock_enabled_title">Tálca megjelenítése</string>
+    <string name="preferences_interface_dock_enabled_summary">Tálca megjelenítése a kezdőképernyő alján</string>
     <string name="preferences_interface_dock_pages_title">Lapok</string>
     <string name="preferences_interface_dock_pages_summary">Lapok száma a tálcán</string>
     <string name="preferences_interface_dock_default_page_title">Alapértelmezett lap</string>
     <string name="preferences_interface_dock_default_page_summary">Válasszon alapértelmezett lapot</string>
     <string name="preferences_interface_dock_icons_title">Ikonok</string>
     <string name="preferences_interface_dock_icons_summary">Ikonok száma a tálcán</string>
+    <string name="preferences_interface_dock_icon_scale_title">Ikonok mérete</string>
+    <string name="preferences_interface_dock_icon_scale_summary">Tálcán szereplő ikonok mérete</string>
     <string name="preferences_interface_dock_divider_title">Tálca elválasztó</string>
     <string name="preferences_interface_dock_divider_summary">Tálca és a képernyő közti elválasztó vonal</string>
 
@@ -230,5 +232,23 @@
     <string name="preferences_interface_general_orientation_title">Képernyő elforgatása</string>
     <string name="preferences_interface_general_fullscreen_title">Teljes képernyő</string>
     <string name="preferences_interface_general_fullscreen_summary">Értesítési sáv elrejtése a kezdőképernyő kiterjesztéséhez</string>
+
+    <!-- Effects -->
+    <string name="effects_standard">Csúsztatás</string>
+    <string name="effects_tablet">Táblagép</string>
+    <string name="effects_zoom_in">Nagyítás befelé</string>
+    <string name="effects_zoom_out">Nagyítás kifelé</string>
+    <string name="effects_rotate_up">Forgatás felfelé</string>
+    <string name="effects_rotate_down">Forgatás lefelé</string>
+    <string name="effects_cylinder_in">Henger belül</string>
+    <string name="effects_cylinder_out">Henger kívül</string>
+    <string name="effects_cube_in">Kocka belül</string>
+    <string name="effects_cube_out">Kocka kívül</string>
+    <string name="effects_spin">Pörgetés</string>
+    <string name="effects_flip">Forgatás</string>
+    <string name="effects_stack">Kártyapakli</string>
+    <string name="effects_accordion">Harmónika</string>
+    <string name="effects_carousel_left">Körhinta balra</string>
+    <string name="effects_carousel_right">Körhinta jobbra</string>
 
 </resources>

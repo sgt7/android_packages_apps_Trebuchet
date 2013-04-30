@@ -29,8 +29,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.cyanogenmod.trebuchet.R;
-
 /**
  * The linear layout used strictly for the widget/wallpaper tab of the customization tray
  */
@@ -108,8 +106,8 @@ public class PagedViewWidget extends LinearLayout {
         name.setText(info.label);
         final TextView dims = (TextView) findViewById(R.id.widget_dims);
         if (dims != null) {
-            int hSpan = Math.min(cellSpan[0], LauncherModel.getCellCountX());
-            int vSpan = Math.min(cellSpan[1], LauncherModel.getCellCountY());
+            int hSpan = Math.min(cellSpan[0], LauncherModel.getWorkspaceCellCountX());
+            int vSpan = Math.min(cellSpan[1], LauncherModel.getWorkspaceCellCountY());
             dims.setText(String.format(mDimensionsFormatString, hSpan, vSpan));
         }
     }
@@ -121,18 +119,6 @@ public class PagedViewWidget extends LinearLayout {
         image.setContentDescription(label);
         final TextView name = (TextView) findViewById(R.id.widget_name);
         name.setText(label);
-        final TextView dims = (TextView) findViewById(R.id.widget_dims);
-        if (dims != null) {
-            dims.setText(String.format(mDimensionsFormatString, 1, 1));
-        }
-    }
-
-    public void applyFromLauncherAction(LauncherAction.Action info) {
-        mIsAppWidget = false;
-        final ImageView image = (ImageView) findViewById(R.id.widget_preview);
-        image.setContentDescription(getContext().getResources().getString(info.getString()));
-        final TextView name = (TextView) findViewById(R.id.widget_name);
-        name.setText(getContext().getResources().getString(info.getString()));
         final TextView dims = (TextView) findViewById(R.id.widget_dims);
         if (dims != null) {
             dims.setText(String.format(mDimensionsFormatString, 1, 1));
