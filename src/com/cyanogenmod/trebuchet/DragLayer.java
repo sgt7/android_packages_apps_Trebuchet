@@ -27,9 +27,11 @@ import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityManager;
@@ -38,12 +40,15 @@ import android.view.animation.Interpolator;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
+import com.cyanogenmod.trebuchet.R;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * A ViewGroup that coordinates dragging across its descendants
  */
-public class DragLayer extends FrameLayout {
+public class DragLayer extends FrameLayout implements ViewGroup.OnHierarchyChangeListener {
     private DragController mDragController;
     private int[] mTmpXY = new int[2];
 
@@ -65,6 +70,8 @@ public class DragLayer extends FrameLayout {
 
     private boolean mHoverPointClosesFolder = false;
     private Rect mHitRect = new Rect();
+    private int mWorkspaceIndex = -1;
+    private int mQsbIndex = -1;
     public static final int ANIMATION_END_DISAPPEAR = 0;
     public static final int ANIMATION_END_FADE_OUT = 1;
     public static final int ANIMATION_END_REMAIN_VISIBLE = 2;
@@ -81,6 +88,7 @@ public class DragLayer extends FrameLayout {
         // Disable multitouch across the workspace/all apps/customize tray
         setMotionEventSplittingEnabled(false);
         setChildrenDrawingOrderEnabled(true);
+        setOnHierarchyChangeListener(this);
 
         mLeftHoverDrawable = getResources().getDrawable(R.drawable.page_hover_left_holo);
         mRightHoverDrawable = getResources().getDrawable(R.drawable.page_hover_right_holo);
@@ -174,8 +182,10 @@ public class DragLayer extends FrameLayout {
                             sendTapOutsideFolderAccessibilityEvent(currentFolder.isEditingName());
                             mHoverPointClosesFolder = true;
                             return true;
-                        } else {
+                        } else if (isOverFolder) {
                             mHoverPointClosesFolder = false;
+                        } else {
+                            return true;
                         }
                     case MotionEvent.ACTION_HOVER_MOVE:
                         isOverFolder = isEventOverFolder(currentFolder, ev);
@@ -243,7 +253,8 @@ public class DragLayer extends FrameLayout {
                     mCurrentResizeFrame = null;
             }
         }
-        return handled || mDragController.onTouchEvent(ev);
+        if (handled) return true;
+        return mDragController.onTouchEvent(ev);
     }
 
     /**
@@ -388,7 +399,16 @@ public class DragLayer extends FrameLayout {
         }
     }
 
-    public void addResizeFrame(LauncherAppWidgetHostView widget, CellLayout cellLayout) {
+    public boolean hasResizeFrames() {
+        return mResizeFrames.size() > 0;
+    }
+
+    public boolean isWidgetBeingResized() {
+        return mCurrentResizeFrame != null;
+    }
+
+    public void addResizeFrame(ItemInfo itemInfo, LauncherAppWidgetHostView widget,
+            CellLayout cellLayout) {
         AppWidgetResizeFrame resizeFrame = new AppWidgetResizeFrame(getContext(),
                 widget, cellLayout, this);
 
@@ -663,6 +683,45 @@ public class DragLayer extends FrameLayout {
             }
         });
         mFadeOutAnim.start();
+    }
+
+    @Override
+    public void onChildViewAdded(View parent, View child) {
+        updateChildIndices();
+    }
+
+    @Override
+    public void onChildViewRemoved(View parent, View child) {
+        updateChildIndices();
+    }
+
+    private void updateChildIndices() {
+        if (mLauncher != null) {
+            mWorkspaceIndex = indexOfChild(mLauncher.getWorkspace());
+            mQsbIndex = indexOfChild(mLauncher.getSearchBar());
+        }
+    }
+
+    @Override
+    protected int getChildDrawingOrder(int childCount, int i) {
+        // TODO: We have turned off this custom drawing order because it now effects touch
+        // dispatch order. We need to sort that issue out and then decide how to go about this.
+        if (true || LauncherApplication.isScreenLandscape(getContext()) ||
+                mWorkspaceIndex == -1 || mQsbIndex == -1 ||
+                mLauncher.getWorkspace().isDrawingBackgroundGradient()) {
+            return i;
+        }
+
+        // This ensures that the workspace is drawn above the hotseat and qsb,
+        // except when the workspace is drawing a background gradient, in which
+        // case we want the workspace to stay behind these elements.
+        if (i == mQsbIndex) {
+            return mWorkspaceIndex;
+        } else if (i == mWorkspaceIndex) {
+            return mQsbIndex;
+        } else {
+            return i;
+        }
     }
 
     private boolean mInScrollArea;

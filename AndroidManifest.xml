@@ -22,7 +22,7 @@
     package="com.cyanogenmod.trebuchet"
     android:versionName="@string/application_version">
 
-    <uses-sdk android:minSdkVersion="17" android:targetSdkVersion="17" />
+    <original-package android:name="com.android.launcher2" />
 
     <permission
         android:name="com.android.launcher.permission.PRELOAD_WORKSPACE"
@@ -39,19 +39,19 @@
         android:permissionGroup="android.permission-group.SYSTEM_TOOLS"
         android:protectionLevel="dangerous"
         android:label="@string/permlab_uninstall_shortcut"
-        android:description="@string/permdesc_uninstall_shortcut" />
+        android:description="@string/permdesc_uninstall_shortcut"/>
     <permission
         android:name="com.android.launcher.permission.READ_SETTINGS"
         android:permissionGroup="android.permission-group.SYSTEM_TOOLS"
         android:protectionLevel="normal"
         android:label="@string/permlab_read_settings"
-        android:description="@string/permdesc_read_settings" />
+        android:description="@string/permdesc_read_settings"/>
     <permission
         android:name="com.android.launcher.permission.WRITE_SETTINGS"
         android:permissionGroup="android.permission-group.SYSTEM_TOOLS"
         android:protectionLevel="normal"
         android:label="@string/permlab_write_settings"
-        android:description="@string/permdesc_write_settings" />
+        android:description="@string/permdesc_write_settings"/>
 
     <uses-permission android:name="android.permission.CALL_PHONE" />
     <uses-permission android:name="android.permission.GET_TASKS" />
@@ -67,7 +67,7 @@
     <application
         android:name="com.cyanogenmod.trebuchet.LauncherApplication"
         android:label="@string/application_name"
-        android:icon="@mipmap/ic_launcher_home"
+        android:icon="@drawable/ic_launcher_home"
         android:hardwareAccelerated="true"
         android:largeHeap="@bool/config_largeHeap"
         android:supportsRtl="true">
@@ -80,6 +80,7 @@
             android:windowSoftInputMode="adjustPan">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+                <action android:name="com.cyanogenmod.trebuchet.LAUNCHER_ACTION" />
                 <category android:name="android.intent.category.HOME" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.MONKEY"/>
@@ -91,7 +92,7 @@
             android:name="com.cyanogenmod.trebuchet.WallpaperChooser"
             android:theme="@style/Theme.WallpaperPicker"
             android:label="@string/pick_wallpaper"
-            android:icon="@mipmap/ic_launcher_wallpaper"
+            android:icon="@drawable/ic_launcher_wallpaper"
             android:finishOnCloseSystemDialogs="true"
             android:process=":wallpaper_chooser">
             <intent-filter>
@@ -120,7 +121,7 @@
         </activity>
 
         <activity android:name="com.cyanogenmod.trebuchet.preference.HiddenAppsActivity"
-            android:label="@string/hidden_apps_title" />
+            android:label="@string/hidden_apps_title"/>
 
         <!-- Intent received used to install shortcuts from other applications -->
         <receiver
@@ -152,7 +153,7 @@
         <service android:name="com.cyanogenmod.trebuchet.RocketLauncher"
             android:label="@string/dream_name"
             android:exported="true"
-            android:icon="@mipmap/ic_launcher_home" >
+            android:icon="@drawable/ic_launcher_home" >
             <intent-filter>
                 <action android:name="android.service.dreams.DreamService" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -168,6 +169,6 @@
             android:readPermission="com.android.launcher.permission.READ_SETTINGS" />
 
         <meta-data android:name="android.nfc.disable_beam_default"
-            android:value="true" />
+                       android:value="true" />
     </application>
 </manifest>

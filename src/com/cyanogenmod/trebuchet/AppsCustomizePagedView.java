@@ -310,11 +310,9 @@ public class AppsCustomizePagedView extends PagedViewWithDraggableItems implemen
         CubeIn,
         CubeOut,
         Stack,
-        Accordion,
+        Accordian,
         CylinderIn,
-        CylinderOut,
-        CarouselLeft,
-        CarouselRight
+        CylinderOut
     }
     private TransitionEffect mTransitionEffect = TransitionEffect.Standard;
 
@@ -552,16 +550,15 @@ public class AppsCustomizePagedView extends PagedViewWithDraggableItems implemen
     }
 
     protected void onDataReady(int width, int height) {
-        // Note that we transpose the counts in portrait so that we get a similar layout
         boolean isLandscape = getResources().getConfiguration().orientation ==
-            Configuration.ORIENTATION_LANDSCAPE;
+                Configuration.ORIENTATION_LANDSCAPE;
         int maxCellCountX = Integer.MAX_VALUE;
         int maxCellCountY = Integer.MAX_VALUE;
         if (LauncherApplication.isScreenLarge()) {
-            maxCellCountX = (isLandscape ? LauncherModel.getWorkspaceCellCountX() :
-                LauncherModel.getWorkspaceCellCountY());
-            maxCellCountY = (isLandscape ? LauncherModel.getWorkspaceCellCountY() :
-                LauncherModel.getWorkspaceCellCountX());
+            maxCellCountX = (isLandscape ? LauncherModel.getCellCountX() :
+                LauncherModel.getCellCountY());
+            maxCellCountY = (isLandscape ? LauncherModel.getCellCountY() :
+                LauncherModel.getCellCountX());
         }
         if (mMaxAppCellCountX > -1) {
             maxCellCountX = Math.min(maxCellCountX, mMaxAppCellCountX);
@@ -570,6 +567,26 @@ public class AppsCustomizePagedView extends PagedViewWithDraggableItems implemen
         int maxWidgetCellCountY = maxCellCountY;
         if (mMaxAppCellCountY > -1) {
             maxWidgetCellCountY = Math.min(maxWidgetCellCountY, mMaxAppCellCountY);
+        }
+
+        int cellCountX = 0;
+        int cellCountY = 0;
+
+        if (isLandscape) {
+            cellCountX = PreferencesProvider.Interface.Drawer.getCellCountXLand(cellCountX);
+            cellCountY = PreferencesProvider.Interface.Drawer.getCellCountYLand(cellCountY);
+        } else {
+            cellCountX = PreferencesProvider.Interface.Drawer.getCellCountX(cellCountX);
+            cellCountY = PreferencesProvider.Interface.Drawer.getCellCountY(cellCountY);
+        }
+
+        if (cellCountX > 0) {
+            maxCellCountX = cellCountX;
+            mPageLayoutWidthGap = -1;
+        }
+        if (cellCountY > 0) {
+            maxCellCountY = cellCountY;
+            mPageLayoutHeightGap = -1;
         }
 
         // Now that the data is ready, we can calculate the content width, the number of cells to
@@ -620,10 +637,9 @@ public class AppsCustomizePagedView extends PagedViewWithDraggableItems implemen
                 int[] pos = mWidgetSpacingLayout.estimateCellPosition(mClingFocusedX, mClingFocusedY);
                 mLauncher.getDragLayer().getLocationInDragLayer(this, offset);
                 // PagedViews are centered horizontally but top aligned
-                // Note we have to shift the items up now that Launcher sits under the status bar
                 pos[0] += (getMeasuredWidth() - mWidgetSpacingLayout.getMeasuredWidth()) / 2 +
                         offset[0];
-                pos[1] += offset[1] - mLauncher.getDragLayer().getPaddingTop();
+                pos[1] += offset[1];
                 mLauncher.showFirstRunAllAppsCling(pos);
             } else if (!mHasShownAllAppsSortCling && isDataReady() &&
                     allAppsCling != null && allAppsCling.isDismissed()) {
@@ -667,6 +683,7 @@ public class AppsCustomizePagedView extends PagedViewWithDraggableItems implemen
             AppWidgetManager.getInstance(mLauncher).getInstalledProviders();
         Intent shortcutsIntent = new Intent(Intent.ACTION_CREATE_SHORTCUT);
         List<ResolveInfo> shortcuts = mPackageManager.queryIntentActivities(shortcutsIntent, 0);
+        List<LauncherAction.Action> launcherActions = LauncherAction.getAllActions();
         for (AppWidgetProviderInfo widget : widgets) {
             if (widget.minWidth > 0 && widget.minHeight > 0) {
                 // Ensure that all widgets we show can be added on a workspace of this size
@@ -674,8 +691,8 @@ public class AppsCustomizePagedView extends PagedViewWithDraggableItems implemen
                 int[] minSpanXY = Launcher.getMinSpanForWidget(mLauncher, widget);
                 int minSpanX = Math.min(spanXY[0], minSpanXY[0]);
                 int minSpanY = Math.min(spanXY[1], minSpanXY[1]);
-                if (minSpanX <= LauncherModel.getWorkspaceCellCountX() &&
-                        minSpanY <= LauncherModel.getWorkspaceCellCountY()) {
+                if (minSpanX <= LauncherModel.getCellCountX() &&
+                        minSpanY <= LauncherModel.getCellCountY()) {
                     mWidgets.add(widget);
                 } else {
                     Log.e(TAG, "Widget " + widget.provider + " can not fit on this device (" +
@@ -687,8 +704,9 @@ public class AppsCustomizePagedView extends PagedViewWithDraggableItems implemen
             }
         }
         mWidgets.addAll(shortcuts);
+        mWidgets.addAll(launcherActions);
         Collections.sort(mWidgets,
-                new LauncherModel.WidgetAndShortcutNameComparator(mPackageManager));
+                new LauncherModel.WidgetAndShortcutNameComparator(mLauncher, mPackageManager));
         updatePageCounts();
         invalidateOnDataChange();
     }
@@ -1453,6 +1471,19 @@ public class AppsCustomizePagedView extends PagedViewWithDraggableItems implemen
         return preview;
     }
 
+    private Bitmap getShortcutPreview(LauncherAction.Action info) {
+        int offset = 0;
+        int bitmapSize = mAppIconSize;
+        Bitmap preview = Bitmap.createBitmap(bitmapSize, bitmapSize, Config.ARGB_8888);
+
+        final Resources res = getContext().getResources();
+
+        // Render the icon
+        Drawable icon = res.getDrawable(info.getDrawable());
+        renderDrawableToBitmap(icon, preview, offset, offset, mAppIconSize, mAppIconSize);
+        return preview;
+    }
+
     private Bitmap getWidgetPreview(ComponentName provider, int previewImage, int iconId,
             int cellHSpan, int cellVSpan, int maxWidth, int maxHeight) {
         // Load the preview image if possible
@@ -1626,6 +1657,14 @@ public class AppsCustomizePagedView extends PagedViewWithDraggableItems implemen
                         info.activityInfo.name);
                 widget.applyFromResolveInfo(mPackageManager, info);
                 widget.setTag(createItemInfo);
+            } else if (rawInfo instanceof LauncherAction.Action) {
+                // Fill in the actions information
+                LauncherAction.Action info = (LauncherAction.Action) rawInfo;
+                createItemInfo = new PendingAddActionInfo();
+                ((PendingAddActionInfo)createItemInfo).action = info;
+                createItemInfo.itemType = LauncherSettings.Favorites.ITEM_TYPE_LAUNCHER_ACTION;
+                widget.applyFromLauncherAction(info);
+                widget.setTag(createItemInfo);
             }
             widget.setOnClickListener(this);
             widget.setOnLongClickListener(this);
@@ -1712,6 +1751,9 @@ public class AppsCustomizePagedView extends PagedViewWithDraggableItems implemen
                 // Fill in the shortcuts information
                 ResolveInfo info = (ResolveInfo) item;
                 images.add(getShortcutPreview(info, data.maxImageWidth, data.maxImageHeight));
+            } else if (item instanceof LauncherAction.Action) {
+                LauncherAction.Action info = (LauncherAction.Action) item;
+                images.add(getShortcutPreview(info));
             }
         }
     }
@@ -1963,7 +2005,7 @@ public class AppsCustomizePagedView extends PagedViewWithDraggableItems implemen
                         (!mVertical ? v.getMeasuredWidth() : v.getMeasuredHeight());
                 float alpha;
 
-                if (!LauncherApplication.isScreenLarge() || scrollProgress < 0) {
+                if ((!LauncherApplication.isScreenLarge() && !mFadeInAdjacentScreens) || scrollProgress < 0) {
                     alpha = scrollProgress < 0 ? mAlphaInterpolator.getInterpolation(
                         1 - Math.abs(scrollProgress)) : 1.0f;
                 } else {
@@ -1992,7 +2034,7 @@ public class AppsCustomizePagedView extends PagedViewWithDraggableItems implemen
     }
 
 
-    private void screenScrolledAccordion(int screenScroll) {
+    private void screenScrolledAccordian(int screenScroll) {
         for (int i = 0; i < getChildCount(); i++) {
             View v = getPageAt(i);
             if (v != null) {
@@ -2095,34 +2137,6 @@ public class AppsCustomizePagedView extends PagedViewWithDraggableItems implemen
         }
     }
 
-    private void screenScrolledCarousel(int screenScroll, boolean left) {
-        for (int i = 0; i < getChildCount(); i++) {
-            View v = getPageAt(i);
-            if (v != null) {
-                float scrollProgress = getScrollProgress(screenScroll, v, i);
-                float rotation = 90.0f * scrollProgress;
-
-                v.setCameraDistance(mDensity * mCameraDistance);
-                if (!mVertical) {
-                    v.setTranslationX(v.getMeasuredWidth() * scrollProgress);
-                    v.setPivotX(left ? 0f : v.getMeasuredWidth());
-                    v.setPivotY(v.getMeasuredHeight() / 2);
-                    v.setRotationY(-rotation);
-                } else {
-                    v.setTranslationY(v.getMeasuredHeight() * scrollProgress);
-                    v.setPivotX(v.getMeasuredWidth() / 2);
-                    v.setPivotY(left ? 0f : v.getMeasuredHeight());
-                    v.setRotationX(rotation);
-                }
-
-                if (mFadeInAdjacentScreens) {
-                    float alpha = 1 - Math.abs(scrollProgress);
-                    v.setAlpha(alpha);
-                }
-            }
-        }
-    }
-
     // Transition effects
     @Override
     protected void screenScrolled(int screenScroll) {
@@ -2195,21 +2209,14 @@ public class AppsCustomizePagedView extends PagedViewWithDraggableItems implemen
                 case Stack:
                     screenScrolledStack(scroll);
                     break;
-                case Accordion:
-                    screenScrolledAccordion(scroll);
+                case Accordian:
+                    screenScrolledAccordian(scroll);
                     break;
                 case CylinderIn:
                     screenScrolledCylinder(scroll, true);
                     break;
                 case CylinderOut:
                     screenScrolledCylinder(scroll, false);
-                    break;
-                case CarouselLeft:
-                    screenScrolledCarousel(scroll, true);
-                    break;
-                case CarouselRight:
-                    screenScrolledCarousel(scroll, false);
-                    break;
             }
             mScrollTransformsDirty = false;
         }
@@ -2588,3 +2595,4 @@ public class AppsCustomizePagedView extends PagedViewWithDraggableItems implemen
         }
     }
 }
+

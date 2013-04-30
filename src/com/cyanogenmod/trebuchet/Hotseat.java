@@ -32,10 +32,9 @@ import java.util.Arrays;
 public class Hotseat extends PagedView {
     private int mCellCount;
 
-    private int mDefaultPage;
-
     private boolean mTransposeLayoutWithOrientation;
     private boolean mIsLandscape;
+    private boolean mLandscapeDockOnBottom;
 
     private float[] mTempCellLayoutCenterCoordinates = new float[2];
     private Matrix mTempInverseMatrix = new Matrix();
@@ -57,12 +56,10 @@ public class Hotseat extends PagedView {
         mHandleScrollIndicator = true;
 
         int hotseatPages = PreferencesProvider.Interface.Dock.getNumberPages();
-        int defaultPage = PreferencesProvider.Interface.Dock.getDefaultPage(hotseatPages / 2);
-        if (defaultPage >= hotseatPages) {
-            defaultPage = hotseatPages / 2;
-        }
+        int defaultPage = PreferencesProvider.Interface.Dock.getDefaultPage(0);
 
-        mCurrentPage = mDefaultPage = defaultPage;
+
+        mCurrentPage = defaultPage;
 
         TypedArray a = context.obtainStyledAttributes(attrs,
                 R.styleable.Hotseat, defStyle, 0);
@@ -70,6 +67,7 @@ public class Hotseat extends PagedView {
                 context.getResources().getBoolean(R.bool.hotseat_transpose_layout_with_orientation);
         mIsLandscape = context.getResources().getConfiguration().orientation ==
             Configuration.ORIENTATION_LANDSCAPE;
+        mLandscapeDockOnBottom = mIsLandscape && PreferencesProvider.Interface.Dock.getLandscapeDockOnBottom();
         mCellCount = a.getInt(R.styleable.Hotseat_cellCount, DEFAULT_CELL_COUNT);
         mCellCount = PreferencesProvider.Interface.Dock.getNumberIcons(mCellCount);
 
@@ -86,7 +84,11 @@ public class Hotseat extends PagedView {
         for (int i = 0; i < hotseatPages; i++) {
             CellLayout cl = (CellLayout) inflater.inflate(R.layout.hotseat_page, null);
             cl.setChildrenScale(childrenScale);
-            cl.setGridSize((!hasVerticalHotseat() ? mCellCount : 1), (hasVerticalHotseat() ? mCellCount : 1));
+            if (hasVerticalHotseat()) {
+                cl.setGridSize(1, mCellCount);
+            } else {
+                cl.setHotseatGridSize(mCellCount, 1);
+            }
             addView(cl);
         }
 
@@ -105,8 +107,8 @@ public class Hotseat extends PagedView {
         return false;
     }
 
-    boolean hasVerticalHotseat() {
-        return (mIsLandscape && mTransposeLayoutWithOrientation);
+    public boolean hasVerticalHotseat() {
+        return (mIsLandscape && !mLandscapeDockOnBottom && mTransposeLayoutWithOrientation);
     }
 
     /* Get the orientation invariant order of the item in the hotseat for persistence. */
@@ -120,23 +122,8 @@ public class Hotseat extends PagedView {
     int getCellYFromOrder(int rank) {
         return hasVerticalHotseat() ? (mCellCount - rank - 1) : 0;
     }
-    int getInverterCellXFromOrder(int rank) {
-        return hasVerticalHotseat() ? (mCellCount - rank - 1) : 0;
-    }
-    int getInverterCellYFromOrder(int rank) {
-        return hasVerticalHotseat() ? 0 : rank;
-    }
     int getScreenFromOrder(int screen) {
-        return hasVerticalHotseat() ? (getChildCount() - screen - 1) : screen;
-    }
-    int[] getDatabaseCellsFromLayout(int[] lpCells) {
-        if (!hasVerticalHotseat()) {
-            return lpCells;
-        }
-        // On landscape with vertical hotseat, the items are stored in y axis and from up to down,
-        // so we need to convert to x axis and left to right prior to save to database. In screen
-        // the item has the right coordinates
-        return new int[]{mCellCount - lpCells[1] - 1, lpCells[0]};
+        return /*hasVerticalHotseat() ? (getChildCount() - screen - 1) : */screen;
     }
 
     /*
@@ -217,8 +204,7 @@ public class Hotseat extends PagedView {
 
                 // Calculate the distance between the center of the CellLayout
                 // and the touch point
-                float dist = Workspace.squaredDistance(
-                                    touchXy, cellLayoutCenter, hasVerticalHotseat());
+                float dist = Workspace.squaredDistance(touchXy, cellLayoutCenter);
 
                 if (dist < smallestDistSoFar) {
                     smallestDistSoFar = dist;
@@ -236,6 +222,14 @@ public class Hotseat extends PagedView {
         }
     }
 
+    /**
+     * Return the current {@link CellLayout}, correctly picking the destination
+     * screen while a scroll is in progress.
+     */
+    public CellLayout getCurrentDropLayout() {
+        return (CellLayout) getChildAt(getNextPage());
+    }
+
     @Override
     protected void onFinishInflate() {
         super.onFinishInflate();
@@ -249,13 +243,8 @@ public class Hotseat extends PagedView {
         }
     }
 
-    void moveToDefaultScreen(boolean animate) {
-        if (animate) {
-            snapToPage(mDefaultPage);
-        } else {
-            setCurrentPage(mDefaultPage);
-        }
-        getChildAt(mDefaultPage).requestFocus();
+    CellLayout getLayout() {
+        return (CellLayout) getPageAt(mCurrentPage);
     }
 
     @Override

@@ -319,15 +319,13 @@ public abstract class PagedView extends ViewGroup implements ViewGroup.OnHierarc
      * the previous tab page.
      */
     protected void updateCurrentPageScroll() {
-        // If the current page is invalid, just reset the scroll position to zero
-        int newX = 0;
-        if (0 <= mCurrentPage && mCurrentPage < getPageCount()) {
-            int offset = getChildOffset(mCurrentPage);
-            int relOffset = getRelativeChildOffset(mCurrentPage);
-            newX = offset - relOffset;
+        int newXY = getChildOffset(mCurrentPage) - getRelativeChildOffset(mCurrentPage);
+        scrollTo(!mVertical ? newXY : 0, mVertical ? newXY : 0);
+        if (!mVertical) {
+            mScroller.setFinalX(newXY);
+        } else {
+            mScroller.setFinalY(newXY);
         }
-        scrollTo(newX, 0);
-        mScroller.setFinalX(newX);
         mScroller.forceFinished(true);
     }
 
@@ -1641,7 +1639,7 @@ public abstract class PagedView extends ViewGroup implements ViewGroup.OnHierarc
     protected int getChildHeight(int index) {
         // This functions are called enough times that it actually makes a difference in the
         // profiler -- so just inline the max() here
-        final int measuredHeight = getPageAt(index) != null ? getPageAt(index).getMeasuredHeight() : 0;
+        final int measuredHeight = getPageAt(index).getMeasuredHeight();
         final int minHeight = mMinimumHeight;
         return (minHeight > measuredHeight) ? minHeight : measuredHeight;
     }

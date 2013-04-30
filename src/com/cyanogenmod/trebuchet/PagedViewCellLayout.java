@@ -25,6 +25,7 @@ import android.view.ViewDebug;
 import android.view.ViewGroup;
 
 import com.cyanogenmod.trebuchet.preference.PreferencesProvider;
+import com.cyanogenmod.trebuchet.R;
 
 /**
  * An abstraction of the original CellLayout which supports laying out items
@@ -66,8 +67,8 @@ public class PagedViewCellLayout extends ViewGroup implements Page {
             resources.getDimensionPixelSize(R.dimen.apps_customize_cell_width);
         mOriginalCellHeight = mCellHeight =
             resources.getDimensionPixelSize(R.dimen.apps_customize_cell_height);
-        mCellCountX = LauncherModel.getWorkspaceCellCountX();
-        mCellCountY = LauncherModel.getWorkspaceCellCountY();
+        mCellCountX = LauncherModel.getCellCountX();
+        mCellCountY = LauncherModel.getCellCountY();
         mOriginalWidthGap = mOriginalHeightGap = mWidthGap = mHeightGap = -1;
         mMaxGap = resources.getDimensionPixelSize(R.dimen.apps_customize_max_gap);
 

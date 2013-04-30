@@ -135,9 +135,11 @@ public class LauncherModel extends BroadcastReceiver {
     private IconCache mIconCache;
     private Bitmap mDefaultIcon;
 
-    private static int sWorkspaceCellCountX;
-    private static int sWorkspaceCellCountY;
-    private static int sHotseatCellCount;
+    private static int mCellCountX;
+    private static int mCellCountY;
+    private static int mMaxCellCountX;
+    private static int mMaxCellCountY;
+    private static int mHotseatCellCount;
 
     protected int mPreviousConfigMcc;
 
@@ -346,7 +348,7 @@ public class LauncherModel extends BroadcastReceiver {
                             case LauncherSettings.Favorites.ITEM_TYPE_APPLICATION:
                             case LauncherSettings.Favorites.ITEM_TYPE_SHORTCUT:
                             case LauncherSettings.Favorites.ITEM_TYPE_FOLDER:
-                            case LauncherSettings.Favorites.ITEM_TYPE_ALLAPPS:
+                            case LauncherSettings.Favorites.ITEM_TYPE_LAUNCHER_ACTION:
                                 if (!sBgWorkspaceItems.contains(modelItem)) {
                                     sBgWorkspaceItems.add(modelItem);
                                 }
@@ -368,29 +370,16 @@ public class LauncherModel extends BroadcastReceiver {
      */
     static void moveItemInDatabase(Context context, final ItemInfo item, final long container,
             final int screen, final int cellX, final int cellY) {
-
-        // We store hotseat items in canonical form which is this orientation invariant position
-        // in the hotseat
-        int screenEx = screen;
-        if (context instanceof Launcher && screen < 0 &&
-                container == LauncherSettings.Favorites.CONTAINER_HOTSEAT) {
-            screenEx = ((Launcher) context).getHotseat().getOrderInHotseat(cellX, cellY);
-        }
-        int[] cells = {cellX, cellY};
-        if (context instanceof Launcher &&
-            container == LauncherSettings.Favorites.CONTAINER_HOTSEAT) {
-            cells = ((Launcher)context).getHotseat().
-                        getDatabaseCellsFromLayout(new int[]{cellX, cellY});
-        }
-
         String transaction = "DbDebug    Modify item (" + item.title + ") in db, id: " + item.id +
                 " (" + item.container + ", " + item.screen + ", " + item.cellX + ", " + item.cellY +
-                ") --> " + "(" + container + ", " + screenEx + ", " + cells[0] + ", " + cells[1] + ")";
+                ") --> " + "(" + container + ", " + screen + ", " + cellX + ", " + cellY + ")";
         Launcher.sDumpLogs.add(transaction);
+        Log.d(TAG, transaction);
         item.container = container;
-        item.cellX = cells[0];
-        item.cellY = cells[1];
-        item.screen = screenEx;
+        item.cellX = cellX;
+        item.cellY = cellY;
+
+        item.screen = screen;
 
         final ContentValues values = new ContentValues();
         values.put(LauncherSettings.Favorites.CONTAINER, item.container);
@@ -406,30 +395,16 @@ public class LauncherModel extends BroadcastReceiver {
      */
     static void modifyItemInDatabase(Context context, final ItemInfo item, final long container,
             final int screen, final int cellX, final int cellY, final int spanX, final int spanY) {
-
-        // We store hotseat items in canonical form which is this orientation invariant position
-        // in the hotseat
-        int screenEx = screen;
-        if (context instanceof Launcher && screen < 0 &&
-                container == LauncherSettings.Favorites.CONTAINER_HOTSEAT) {
-            screenEx = ((Launcher) context).getHotseat().getOrderInHotseat(cellX, cellY);
-        }
-        int[] cells = {cellX, cellY};
-        if (context instanceof Launcher &&
-            container == LauncherSettings.Favorites.CONTAINER_HOTSEAT) {
-            cells = ((Launcher)context).getHotseat().
-                        getDatabaseCellsFromLayout(new int[]{cellX, cellY});
-        }
-
         String transaction = "DbDebug    Modify item (" + item.title + ") in db, id: " + item.id +
                 " (" + item.container + ", " + item.screen + ", " + item.cellX + ", " + item.cellY +
-                ") --> " + "(" + container + ", " + screenEx + ", " + cells[0] + ", " + cells[1] + ")";
+                ") --> " + "(" + container + ", " + screen + ", " + cellX + ", " + cellY + ")";
         Launcher.sDumpLogs.add(transaction);
-        item.cellX = cells[0];
-        item.cellY = cells[1];
+        Log.d(TAG, transaction);
+        item.cellX = cellX;
+        item.cellY = cellY;
         item.spanX = spanX;
         item.spanY = spanY;
-        item.screen = screenEx;
+        item.screen = screen;
 
         final ContentValues values = new ContentValues();
         values.put(LauncherSettings.Favorites.CONTAINER, item.container);
@@ -454,13 +429,13 @@ public class LauncherModel extends BroadcastReceiver {
 
     /**
      * Returns true if the shortcuts already exists in the database.
-     * we identify a shortcut by its intent.
+     * we identify a shortcut by its title and intent.
      */
-    static boolean shortcutExists(Context context, Intent intent) {
+    static boolean shortcutExists(Context context, String title, Intent intent) {
         final ContentResolver cr = context.getContentResolver();
         Cursor c = cr.query(LauncherSettings.Favorites.CONTENT_URI,
-            new String[] { "intent" }, "intent=?",
-            new String[] { intent.toUri(0) }, null);
+            new String[] { "title", "intent" }, "title=? and intent=?",
+            new String[] { title, intent.toUri(0) }, null);
         boolean result = false;
         try {
             result = c.moveToFirst();
@@ -562,25 +537,10 @@ public class LauncherModel extends BroadcastReceiver {
      */
     static void addItemToDatabase(Context context, final ItemInfo item, final long container,
             final int screen, final int cellX, final int cellY, final boolean notify) {
-
-        // We store hotseat items in canonical form which is this orientation invariant position
-        // in the hotseat
-        int screenEx = screen;
-        if (context instanceof Launcher && screen < 0 &&
-                container == LauncherSettings.Favorites.CONTAINER_HOTSEAT) {
-            screenEx = ((Launcher) context).getHotseat().getOrderInHotseat(cellX, cellY);
-        }
-        int[] cells = {cellX, cellY};
-        if (context instanceof Launcher &&
-            container == LauncherSettings.Favorites.CONTAINER_HOTSEAT) {
-            cells = ((Launcher)context).getHotseat().
-                        getDatabaseCellsFromLayout(new int[]{cellX, cellY});
-        }
-
         item.container = container;
-        item.cellX = cells[0];
-        item.cellY = cells[1];
-        item.screen = screenEx;
+        item.cellX = cellX;
+        item.cellY = cellY;
+        item.screen = screen;
 
         final ContentValues values = new ContentValues();
         final ContentResolver cr = context.getContentResolver();
@@ -594,8 +554,8 @@ public class LauncherModel extends BroadcastReceiver {
         Runnable r = new Runnable() {
             public void run() {
                 String transaction = "DbDebug    Add item (" + item.title + ") to db, id: "
-                        + item.id + " (" + container + ", " + item.screen + ", " + item.cellX + ", "
-                        + item.cellY + ")";
+                        + item.id + " (" + container + ", " + screen + ", " + cellX + ", "
+                        + cellY + ")";
                 Launcher.sDumpLogs.add(transaction);
                 Log.d(TAG, transaction);
 
@@ -612,7 +572,7 @@ public class LauncherModel extends BroadcastReceiver {
                             // Fall through
                         case LauncherSettings.Favorites.ITEM_TYPE_APPLICATION:
                         case LauncherSettings.Favorites.ITEM_TYPE_SHORTCUT:
-                        case LauncherSettings.Favorites.ITEM_TYPE_ALLAPPS:
+                        case LauncherSettings.Favorites.ITEM_TYPE_LAUNCHER_ACTION:
                             if (item.container == LauncherSettings.Favorites.CONTAINER_DESKTOP ||
                                     item.container == LauncherSettings.Favorites.CONTAINER_HOTSEAT) {
                                 sBgWorkspaceItems.add(item);
@@ -644,16 +604,12 @@ public class LauncherModel extends BroadcastReceiver {
                 | (screen & 0xFF) << 16 | (localCellX & 0xFF) << 8 | (localCellY & 0xFF);
     }
 
-    public static int getWorkspaceCellCountX() {
-        return sWorkspaceCellCountX;
+    public static int getCellCountX() {
+        return mCellCountX;
     }
 
-    public static int getWorkspaceCellCountY() {
-        return sWorkspaceCellCountY;
-    }
-
-    public static int getHotseatCellCount() {
-        return sHotseatCellCount;
+    public static int getCellCountY() {
+        return mCellCountY;
     }
 
     /**
@@ -661,8 +617,29 @@ public class LauncherModel extends BroadcastReceiver {
      * when performing local/canonical coordinate transformations.
      */
     static void updateWorkspaceLayoutCells(int shortAxisCellCount, int longAxisCellCount) {
-        sWorkspaceCellCountX = shortAxisCellCount;
-        sWorkspaceCellCountY = longAxisCellCount;
+        mCellCountX = shortAxisCellCount;
+        mCellCountY = longAxisCellCount;
+    }
+
+    public static int getMaxCellCountX() {
+        return mMaxCellCountX;
+    }
+
+    public static int getMaxCellCountY() {
+        return mMaxCellCountY;
+    }
+
+    /**
+     * Updates the model orientation helper to take into account the current layout dimensions
+     * when performing local/canonical coordinate transformations.
+     */
+    static void updateMaxWorkspaceLayoutCells(int shortAxisCellCount, int longAxisCellCount) {
+        mMaxCellCountX = shortAxisCellCount;
+        mMaxCellCountY = longAxisCellCount;
+    }
+
+    static int getHotseatCellCount() {
+        return mHotseatCellCount;
     }
 
     /**
@@ -670,7 +647,7 @@ public class LauncherModel extends BroadcastReceiver {
      * when performing local/canonical coordinate transformations.
      */
     static void updateHotseatLayoutCells(int cellCount) {
-        sHotseatCellCount = cellCount;
+        mHotseatCellCount = cellCount;
     }
 
     /**
@@ -711,7 +688,7 @@ public class LauncherModel extends BroadcastReceiver {
                             break;
                         case LauncherSettings.Favorites.ITEM_TYPE_APPLICATION:
                         case LauncherSettings.Favorites.ITEM_TYPE_SHORTCUT:
-                        case LauncherSettings.Favorites.ITEM_TYPE_ALLAPPS:
+                        case LauncherSettings.Favorites.ITEM_TYPE_LAUNCHER_ACTION:
                             sBgWorkspaceItems.remove(item);
                             break;
                         case LauncherSettings.Favorites.ITEM_TYPE_APPWIDGET:
@@ -755,27 +732,6 @@ public class LauncherModel extends BroadcastReceiver {
             }
         };
         runOnWorkerThread(r);
-    }
-
-    /**
-     * Count the amount of items of a type
-     */
-    static int countAllItemsOfType(Context context, int itemType) {
-        final ContentResolver cr = context.getContentResolver();
-        Cursor c = cr.query(LauncherSettings.Favorites.CONTENT_URI, null,
-                "itemType=?", new String[]{ String.valueOf(itemType) }, null);
-        return c.getCount();
-    }
-
-    /**
-     * Count the amount of items of a type in a container
-     */
-    static int countAllItemsOfType(Context context, int itemType, long container) {
-        final ContentResolver cr = context.getContentResolver();
-        Cursor c = cr.query(LauncherSettings.Favorites.CONTENT_URI, null,
-                "itemType=? and container=?", new String[]{ String.valueOf(itemType),
-                String.valueOf(container) }, null);
-        return c.getCount();
     }
 
     /**
@@ -848,7 +804,7 @@ public class LauncherModel extends BroadcastReceiver {
              // and we would need to clear out the labels in all apps/workspace. Same handling as
              // above for ACTION_LOCALE_CHANGED
              Configuration currentConfig = context.getResources().getConfiguration();
-             if (mPreviousConfigMcc != currentConfig.mcc && mPreviousConfigMcc > 0 && currentConfig.mcc > 0) {
+             if (mPreviousConfigMcc != currentConfig.mcc) {
                    Log.d(TAG, "Reload apps on config change. curr_mcc:"
                        + currentConfig.mcc + " prevmcc:" + mPreviousConfigMcc);
                    forceReload();
@@ -1219,7 +1175,17 @@ public class LauncherModel extends BroadcastReceiver {
         private boolean checkItemPlacement(ItemInfo occupied[][][], ItemInfo item) {
             int containerIndex = item.screen;
             if (item.container == LauncherSettings.Favorites.CONTAINER_HOTSEAT) {
-                containerIndex += Launcher.MAX_WORKSPACE_SCREEN_COUNT;
+                // We use the last index to refer to the hotseat and the screen as the rank, so
+                // test and update the occupied state accordingly
+                if (occupied[Launcher.MAX_SCREEN_COUNT][item.screen][item.cellX] != null) {
+                    Log.e(TAG, "Error loading shortcut into hotseat " + item
+                        + " into position (" + item.screen + ":" + item.cellX + "," + item.cellY
+                        + ") occupied by " + occupied[Launcher.MAX_SCREEN_COUNT][item.screen][0]);
+                    return false;
+                } else {
+                    occupied[Launcher.MAX_SCREEN_COUNT][item.screen][item.cellX] = item;
+                    return true;
+                }
             } else if (item.container != LauncherSettings.Favorites.CONTAINER_DESKTOP) {
                 // Skip further checking if it is not the hotseat or workspace container
                 return true;
@@ -1271,11 +1237,12 @@ public class LauncherModel extends BroadcastReceiver {
                 final Cursor c = contentResolver.query(
                         LauncherSettings.Favorites.CONTENT_URI, null, null, null, null);
 
+                // +1 for the hotseat (it can be larger than the workspace)
                 // Load workspace in reverse order to ensure that latest items are loaded first (and
                 // before any earlier duplicates)
                 final ItemInfo occupied[][][] =
-                        new ItemInfo[Launcher.MAX_SCREEN_COUNT][Math.max(sWorkspaceCellCountX, sHotseatCellCount)]
-                                [Math.max(sWorkspaceCellCountY, sHotseatCellCount)];
+                        new ItemInfo[Launcher.MAX_SCREEN_COUNT + 1][Math.max(mCellCountX, mHotseatCellCount)]
+                                [Math.max(mCellCountY, mHotseatCellCount)];
 
                 try {
                     final int idIndex = c.getColumnIndexOrThrow(LauncherSettings.Favorites._ID);
@@ -1306,6 +1273,11 @@ public class LauncherModel extends BroadcastReceiver {
                             (LauncherSettings.Favorites.SPANX);
                     final int spanYIndex = c.getColumnIndexOrThrow(
                             LauncherSettings.Favorites.SPANY);
+                    final int actionIndex = c.getColumnIndex(
+                            LauncherSettings.Favorites.LAUNCHER_ACTION);
+                    //final int uriIndex = c.getColumnIndexOrThrow(LauncherSettings.Favorites.URI);
+                    //final int displayModeIndex = c.getColumnIndexOrThrow(
+                    //        LauncherSettings.Favorites.DISPLAY_MODE);
 
                     ShortcutInfo info;
                     String intentDescription;
@@ -1328,7 +1300,7 @@ public class LauncherModel extends BroadcastReceiver {
                                     continue;
                                 }
 
-                            case LauncherSettings.Favorites.ITEM_TYPE_ALLAPPS:
+                            case LauncherSettings.Favorites.ITEM_TYPE_LAUNCHER_ACTION:
 
                                 if (itemType == LauncherSettings.Favorites.ITEM_TYPE_APPLICATION) {
                                     info = getShortcutInfo(manager, intent, context, c, iconIndex,
@@ -1350,10 +1322,9 @@ public class LauncherModel extends BroadcastReceiver {
                                             Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
                                     }
                                 } else {
-                                    info = getShortcutInfo(c, context, iconTypeIndex,
+                                    info = getLauncherActionInfo(c, context, iconTypeIndex,
                                             iconPackageIndex, iconResourceIndex, iconIndex,
-                                            titleIndex);
-                                    info.itemType = LauncherSettings.Favorites.ITEM_TYPE_ALLAPPS;
+                                            titleIndex, actionIndex);
                                 }
 
                                 if (info != null) {
@@ -1501,13 +1472,13 @@ public class LauncherModel extends BroadcastReceiver {
                 if (DEBUG_LOADERS) {
                     Log.d(TAG, "loaded workspace in " + (SystemClock.uptimeMillis()-t) + "ms");
                     Log.d(TAG, "workspace layout: ");
-                    for (int y = 0; y < sWorkspaceCellCountY; y++) {
+                    for (int y = 0; y < mCellCountY; y++) {
                         String line = "";
                         for (int s = 0; s < Launcher.MAX_SCREEN_COUNT; s++) {
                             if (s > 0) {
                                 line += " | ";
                             }
-                            for (int x = 0; x < sWorkspaceCellCountX; x++) {
+                            for (int x = 0; x < mCellCountX; x++) {
                                 line += ((occupied[s][x][y] != null) ? "#" : ".");
                             }
                         }
@@ -1624,8 +1595,8 @@ public class LauncherModel extends BroadcastReceiver {
             Collections.sort(workspaceItems, new Comparator<ItemInfo>() {
                 @Override
                 public int compare(ItemInfo lhs, ItemInfo rhs) {
-                    int cellCountX = LauncherModel.getWorkspaceCellCountX();
-                    int cellCountY = LauncherModel.getWorkspaceCellCountY();
+                    int cellCountX = LauncherModel.getCellCountX();
+                    int cellCountY = LauncherModel.getCellCountY();
                     int screenOffset = cellCountX * cellCountY;
                     int containerOffset = screenOffset * (Launcher.MAX_SCREEN_COUNT + 1); // +1 hotseat
                     long lr = (lhs.container * containerOffset + lhs.screen * screenOffset +
@@ -2253,6 +2224,68 @@ public class LauncherModel extends BroadcastReceiver {
         return info;
     }
 
+    /**
+     * Make an ShortcutInfo object for a shortcut that isn't an application.
+     */
+    private LauncherActionInfo getLauncherActionInfo(Cursor c, Context context,
+            int iconTypeIndex, int iconPackageIndex, int iconResourceIndex, int iconIndex,
+            int titleIndex, int actionIndex) {
+
+        Bitmap icon = null;
+        final LauncherActionInfo info = new LauncherActionInfo();
+
+        info.title = c.getString(titleIndex);
+        info.action = LauncherAction.Action.valueOf(c.getString((actionIndex == -1) ?
+				0 : actionIndex));
+
+        int iconType = c.getInt(iconTypeIndex);
+        switch (iconType) {
+            case LauncherSettings.Favorites.ICON_TYPE_RESOURCE:
+                String packageName = c.getString(iconPackageIndex);
+                String resourceName = c.getString(iconResourceIndex);
+                PackageManager packageManager = context.getPackageManager();
+                info.customIcon = false;
+                // the resource
+                try {
+                    Resources resources = packageManager.getResourcesForApplication(packageName);
+                    if (resources != null) {
+                        final int id = resources.getIdentifier(resourceName, null, null);
+                        icon = Utilities.createIconBitmap(
+                                mIconCache.getFullResIcon(resources, id), context);
+                    }
+                } catch (Exception e) {
+                    // drop this.  we have other places to look for icons
+                }
+                // the db
+                if (icon == null) {
+                    icon = getIconFromCursor(c, iconIndex, context);
+                }
+                // the fallback icon
+                if (icon == null) {
+                    icon = getFallbackIcon();
+                    info.usingFallbackIcon = true;
+                }
+                break;
+            case LauncherSettings.Favorites.ICON_TYPE_BITMAP:
+                icon = getIconFromCursor(c, iconIndex, context);
+                if (icon == null) {
+                    icon = getFallbackIcon();
+                    info.customIcon = false;
+                    info.usingFallbackIcon = true;
+                } else {
+                    info.customIcon = true;
+                }
+                break;
+            default:
+                icon = getFallbackIcon();
+                info.usingFallbackIcon = true;
+                info.customIcon = false;
+                break;
+        }
+        info.setIcon(icon);
+        return info;
+    }
+
     Bitmap getIconFromCursor(Cursor c, int iconIndex, Context context) {
         @SuppressWarnings("all") // suppress dead code warning
         final boolean debug = false;
@@ -2461,9 +2494,11 @@ public class LauncherModel extends BroadcastReceiver {
     }
     public static class WidgetAndShortcutNameComparator implements Comparator<Object> {
         private Collator mCollator;
+        private Context mContext;
         private PackageManager mPackageManager;
         private HashMap<Object, String> mLabelCache;
-        WidgetAndShortcutNameComparator(PackageManager pm) {
+        WidgetAndShortcutNameComparator(Context context, PackageManager pm) {
+            mContext = context;
             mPackageManager = pm;
             mLabelCache = new HashMap<Object, String>();
             mCollator = Collator.getInstance();
@@ -2477,6 +2512,8 @@ public class LauncherModel extends BroadcastReceiver {
                     labelA = ((AppWidgetProviderInfo) a).label;
                 } else if (a instanceof ResolveInfo) {
                     labelA = ((ResolveInfo) a).loadLabel(mPackageManager).toString();
+                } else if (a instanceof LauncherAction.Action) {
+                    labelA = mContext.getResources().getString(((LauncherAction.Action) a).getString());
                 }
                 mLabelCache.put(a, labelA);
             }
@@ -2487,6 +2524,8 @@ public class LauncherModel extends BroadcastReceiver {
                     labelB = ((AppWidgetProviderInfo) b).label;
                 } else if (b instanceof ResolveInfo) {
                     labelB = ((ResolveInfo) b).loadLabel(mPackageManager).toString();
+                } else if (b instanceof LauncherAction.Action) {
+                    labelB = mContext.getResources().getString(((LauncherAction.Action) b).getString());
                 }
                 mLabelCache.put(b, labelB);
             }

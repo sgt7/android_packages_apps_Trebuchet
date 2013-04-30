@@ -40,6 +40,28 @@
     <Preference android:key="ui_drawer_background"
         android:title="@string/preferences_interface_drawer_background_title"
         android:summary="@string/preferences_interface_drawer_background_summary" />
+    <com.cyanogenmod.trebuchet.preference.DoubleNumberPickerPreference android:key="ui_drawer_grid"
+        android:title="@string/preferences_interface_drawer_grid_title"
+        android:summary="@string/preferences_interface_drawer_grid_summary"
+        launcher:pickerTitle1="@string/preferences_interface_homescreen_general_grid_rows_title"
+        launcher:pickerTitle2="@string/preferences_interface_homescreen_general_grid_columns_title"
+        launcher:defaultValue1="6"
+        launcher:defaultValue2="5"
+        launcher:max1="10"
+        launcher:min1="1"
+        launcher:max2="10"
+        launcher:min2="1" />
+    <com.cyanogenmod.trebuchet.preference.DoubleNumberPickerPreference android:key="ui_drawer_grid_land"
+        android:title="@string/preferences_interface_drawer_grid_land_title"
+        android:summary="@string/preferences_interface_drawer_grid_summary"
+        launcher:pickerTitle1="@string/preferences_interface_homescreen_general_grid_rows_title"
+        launcher:pickerTitle2="@string/preferences_interface_homescreen_general_grid_columns_title"
+        launcher:defaultValue1="4"
+        launcher:defaultValue2="7"
+        launcher:max1="10"
+        launcher:min1="1"
+        launcher:max2="10"
+        launcher:min2="1" />
     <com.cyanogenmod.trebuchet.preference.DoubleNumberPickerPreference android:key="ui_app_widget_grid"
         android:title="@string/preferences_interface_drawer_app_widget_grid_title"
         android:summary="@string/preferences_interface_drawer_grid_summary"
@@ -84,6 +106,7 @@
             android:entryValues="@array/preferences_interface_drawer_scrolling_transition_effect_values"
             android:defaultValue="@string/config_drawerDefaultTransitionEffect" />
         <CheckBoxPreference android:key="ui_drawer_scrolling_fade_adjacent_screens"
+            android:defaultValue="true"
             android:title="@string/preferences_interface_drawer_scrolling_fade_adjacent_screens_title"
             android:summary="@string/preferences_interface_drawer_scrolling_fade_adjacent_screens_summary" />
     </PreferenceCategory>

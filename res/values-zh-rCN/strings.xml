@@ -30,8 +30,6 @@
     <string name="widgets_tab_label" msgid="9145860100000983599">"小部件"</string>
     <string name="long_press_widget_to_add" msgid="7395697462851217506">"触摸并按住可选取小部件。"</string>
     <string name="market" msgid="2652226429823445833">"购买"</string>
-    <!-- Menu button text. -->
-    <string name="menu">菜单</string>
     <string name="external_drop_widget_error" msgid="2285187188524172774">"无法将项拖放到此主屏幕上。"</string>
     <string name="external_drop_widget_pick_title" msgid="7040647073452295370">"选择要创建的小部件"</string>
     <string name="rename_folder_label" msgid="5646236631298452787">"文件夹名称"</string>
@@ -43,6 +41,7 @@
     <string name="group_shortcuts" msgid="9133529424900391877">"快捷方式"</string>
     <string name="group_widgets" msgid="6704978494073105844">"小部件"</string>
     <!-- Options in "Add to Home" dialog box; Title of the group containing the list of all launcher actions -->
+    <string name="group_actions">操作</string>
     <string name="group_wallpapers" msgid="1568191644272224858">"壁纸"</string>
     <string name="completely_out_of_space" msgid="1759078539443491182">"您的主屏幕上没有空间了。"</string>
     <string name="out_of_space" msgid="8365249326091984698">"此主屏幕上已没有空间。"</string>
@@ -161,6 +160,8 @@
     <string name="preferences_interface_homescreen_general_grid_columns_title">列</string>
     <string name="preferences_interface_homescreen_general_stretch_screens_title">拉长屏幕</string>
     <string name="preferences_interface_homescreen_general_stretch_screens_summary">扩展主屏幕为填充屏幕大小</string>
+    <string name="preferences_interface_homescreen_general_resize_any_widget_title">调整任何小部件的大小</string>
+    <string name="preferences_interface_homescreen_general_resize_any_widget_summary">允许小部件的大小调整</string>
     <string name="preferences_interface_homescreen_general_hide_icon_labels_title">隐藏图标标签</string>
     <string name="preferences_interface_homescreen_general_hide_icon_labels_summary">隐藏在主屏幕上图标的标签</string>
     <string name="preferences_interface_homescreen_scrolling_category">滚动</string>
@@ -209,16 +210,12 @@
 
     <!-- Dock -->
     <string name="preferences_interface_dock_title">底座</string>
-    <string name="preferences_interface_dock_enabled_title">显示底座</string>
-    <string name="preferences_interface_dock_enabled_summary">显示在主屏幕下部的底座</string>
     <string name="preferences_interface_dock_pages_title">页面</string>
     <string name="preferences_interface_dock_pages_summary">设置底座页面数</string>
     <string name="preferences_interface_dock_default_page_title">默认页面</string>
     <string name="preferences_interface_dock_default_page_summary">选择默认页面</string>
     <string name="preferences_interface_dock_icons_title">图标</string>
     <string name="preferences_interface_dock_icons_summary">设置底座上的图标数量/列数</string>
-    <string name="preferences_interface_dock_icon_scale_title">图标比例</string>
-    <string name="preferences_interface_dock_icon_scale_summary">设置底座上图标的比例</string>
     <string name="preferences_interface_dock_divider_title">显示底座分隔器</string>
     <string name="preferences_interface_dock_divider_summary">显示指示器后面的背景</string>
 
@@ -230,20 +227,4 @@
     <string name="preferences_interface_general_orientation_title">自动旋转屏幕</string>
     <string name="preferences_interface_general_fullscreen_title">全屏模式</string>
     <string name="preferences_interface_general_fullscreen_summary">隐藏状态栏以便扩展主屏幕</string>
-
-    <!-- Effects -->
-    <string name="effects_standard">标准</string>
-    <string name="effects_tablet">平板</string>
-    <string name="effects_zoom_in">放大</string>
-    <string name="effects_zoom_out">缩小</string>
-    <string name="effects_rotate_up">向上转动</string>
-    <string name="effects_rotate_down">向下转动</string>
-    <string name="effects_cylinder_in">圆柱凹入</string>
-    <string name="effects_cylinder_out">圆柱凸出</string>
-    <string name="effects_cube_in">立方凹入</string>
-    <string name="effects_cube_out">立方凸出</string>
-    <string name="effects_spin">旋转</string>
-    <string name="effects_flip">翻动</string>
-    <string name="effects_stack">堆叠</string>
-    <string name="effects_accordion">手风琴</string>
 </resources>

@@ -440,7 +440,7 @@ public class DragController {
                 if (mDragging) {
                     PointF vec = isFlingingToDelete(mDragObject.dragSource);
                     if (vec != null) {
-                        dropOnFlingToDeleteTarget(vec);
+                        dropOnFlingToDeleteTarget(dragLayerX, dragLayerY, vec);
                     } else {
                         drop(dragLayerX, dragLayerY);
                     }
@@ -582,7 +582,7 @@ public class DragController {
             if (mDragging) {
                 PointF vec = isFlingingToDelete(mDragObject.dragSource);
                 if (vec != null) {
-                    dropOnFlingToDeleteTarget(vec);
+                    dropOnFlingToDeleteTarget(dragLayerX, dragLayerY, vec);
                 } else {
                     drop(dragLayerX, dragLayerY);
                 }
@@ -624,7 +624,7 @@ public class DragController {
         return null;
     }
 
-    private void dropOnFlingToDeleteTarget(PointF vel) {
+    private void dropOnFlingToDeleteTarget(float x, float y, PointF vel) {
         final int[] coordinates = mCoordinatesTemp;
 
         mDragObject.x = coordinates[0];
