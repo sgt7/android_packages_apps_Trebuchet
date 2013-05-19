@@ -203,6 +203,13 @@
 
     <!-- Icons -->
     <string name="preferences_interface_icons_title">Иконки</string>
+    
+    <!-- Gestures -->
+    <string name="preferences_interface_gestures_title">Жесты</string>
+    <string name="preferences_interface_gestures_homescreen_category">Жесты на домашнем экране</string>
+    <string name="preferences_interface_gestures_double_tap_title">Двойной тап</string>
+    <string name="preferences_interface_gestures_swipe_up_title">Росчерк вверх</string>
+    <string name="preferences_interface_gestures_swipe_down_title">Росчерк вниз</string>
 
     <!-- General -->
     <string name="preferences_interface_general_title">Основные</string>
