@@ -150,7 +150,7 @@
     <string name="preferences_interface_homescreen_general_hide_icon_labels_summary">Прятать подписи иконок на рабочих столах</string>
     <string name="preferences_interface_homescreen_scrolling_category">ПРОКРУТКА</string>
     <string name="preferences_interface_homescreen_scrolling_transition_effect_title">Эффект перехода</string>
-    <string name="preferences_interface_homescreen_scrolling_transition_effect_summary">Эффект перехода при перелистывании рабочих экранов</string>
+    <string name="preferences_interface_homescreen_scrolling_transition_effect_summary">Эффект перехода при перелистывании рабочих столов</string>
     <string name="preferences_interface_homescreen_scrolling_scroll_wallpaper_title">Прокрутка обоев</string>
     <string name="preferences_interface_homescreen_scrolling_scroll_wallpaper_summary">Прокручивать обои при прокрутке рабочих столов</string>
     <string name="preferences_interface_homescreen_scrolling_wallpaper_hack_title">Быстрая отрисовка обоев</string>
