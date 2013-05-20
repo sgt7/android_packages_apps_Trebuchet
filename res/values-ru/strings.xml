@@ -19,7 +19,7 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="home" msgid="5921706419368316758">"Главный экран"</string>
+    <string name="home" msgid="5921706419368316758">"Домашний экран"</string>
     <string name="uid_name" msgid="3371120195364560632">"Основные приложения"</string>
     <string name="folder_name" msgid="8551881338202938211"></string>
     <string name="chooser_wallpaper" msgid="6063168087625352235">"Установка обоев"</string>
@@ -29,19 +29,19 @@
     <string name="widgets_tab_label" msgid="9145860100000983599">"Виджеты"</string>
     <string name="long_press_widget_to_add" msgid="7395697462851217506">"Чтобы выбрать виджет, нажмите на значок и удерживайте его."</string>
     <string name="market" msgid="2652226429823445833">"Маркет"</string>
-    <string name="external_drop_widget_error" msgid="2285187188524172774">"Не удалось добавить элемент на главный экран."</string>
+    <string name="external_drop_widget_error" msgid="2285187188524172774">"Не удалось добавить элемент на домашний экран."</string>
     <string name="external_drop_widget_pick_title" msgid="7040647073452295370">"Выберите виджет"</string>
     <string name="rename_folder_label" msgid="5646236631298452787">"Название папки"</string>
     <string name="rename_folder_title" msgid="4544573104191526550">"Переименовать папку"</string>
     <string name="rename_action" msgid="6016003384693240896">"ОК"</string>
     <string name="cancel_action" msgid="3811860427489435048">"Отмена"</string>
-    <string name="menu_item_add_item" msgid="6233177331075781114">"Добавить на главный экран"</string>
+    <string name="menu_item_add_item" msgid="6233177331075781114">"Добавить на домашний экран"</string>
     <string name="group_applications" msgid="2103752818818161976">"Приложения"</string>
     <string name="group_shortcuts" msgid="9133529424900391877">"Ярлыки"</string>
     <string name="group_widgets" msgid="6704978494073105844">"Виджеты"</string>
     <string name="group_actions">Действия</string>
     <string name="group_wallpapers" msgid="1568191644272224858">"Обои"</string>
-    <string name="completely_out_of_space" msgid="1759078539443491182">"На главных экранах всё занято."</string>
+    <string name="completely_out_of_space" msgid="1759078539443491182">"На всех экранах всё занято."</string>
     <string name="out_of_space" msgid="8365249326091984698">"На этом экране всё занято."</string>
     <string name="hotseat_out_of_space" msgid="6304886797358479361">"Нет свободного места в слоте."</string>
     <string name="invalid_hotseat_item" msgid="6545340627805449250">"Виджет слишком велик для слота."</string>
@@ -93,19 +93,19 @@
     <string name="uninstall_system_app_text" msgid="6429814133777046491">"Это системное приложение, его нельзя удалить."</string>
     <string name="dream_name" msgid="2847171357608437154">"Фейерверк"</string>
     <string name="folder_hint_text" msgid="8633351560105748141">"Без названия"</string>
-    <string name="workspace_description_format" msgid="2968608205939373034">"Главный экран %1$d"</string>
+    <string name="workspace_description_format" msgid="2968608205939373034">"Домашний экран %1$d"</string>
     <string name="default_scroll_format" msgid="4057140866420001240">"Стр. %1$d из %2$d"</string>
-    <string name="workspace_scroll_format" msgid="1704767047951143301">"Главные экран %1$d из %2$d"</string>
+    <string name="workspace_scroll_format" msgid="1704767047951143301">"Домашний экран %1$d из %2$d"</string>
     <string name="apps_customize_apps_scroll_format" msgid="5494241912377704885">"Приложения: стр. %1$d из %2$d"</string>
     <string name="apps_customize_widgets_scroll_format" msgid="5383009742241717437">"Виджеты: стр. %1$d из %2$d"</string>
     <string name="workspace_cling_title" msgid="738396473989890567">"Будьте как дома"</string>
     <string name="workspace_cling_move_item" msgid="791013895761065070">"Добавляйте сюда любимые приложения."</string>
     <string name="workspace_cling_open_all_apps" msgid="2459977609848572588">"Чтобы открыть список приложений, нажмите на круг."</string>
     <string name="all_apps_cling_title" msgid="2559734712581447107">"Выберите приложения"</string>
-    <string name="all_apps_cling_add_item" msgid="5665035103260318891">"Чтобы добавить приложение на главный экран, нажмите на значок и удерживайте его."</string>
+    <string name="all_apps_cling_add_item" msgid="5665035103260318891">"Чтобы добавить приложение на домашний экран, нажмите на значок и удерживайте его."</string>
     <string name="folder_cling_title" msgid="4308949882377840953">"Разложите все по папкам"</string>
     <string name="folder_cling_move_item" msgid="270598675060435169">"Чтобы переместить значок приложения, нажмите на него и удерживайте."</string>
-    <string name="folder_cling_create_folder" msgid="8352867485656129478">"Чтобы создать папку на главном экране, перенесите одно приложение на другое."</string>
+    <string name="folder_cling_create_folder" msgid="8352867485656129478">"Чтобы создать папку на домашнем экране, перенесите одно приложение на другое."</string>
     <string name="cling_dismiss" msgid="2780907108735868381">"ОК"</string>
     <string name="folder_opened" msgid="1262064100943801533">"Папка открыта, <xliff:g id="WIDTH">%1$d</xliff:g> x <xliff:g id="HEIGHT">%2$d</xliff:g>"</string>
     <string name="folder_tap_to_close" msgid="1335478160661137579">"Нажмите, чтобы закрыть папку"</string>
@@ -129,11 +129,11 @@
 
     <!-- UI -->
     <!-- Homescreen -->
-    <string name="preferences_interface_homescreen_title">Главный экран</string>
+    <string name="preferences_interface_homescreen_title">Домашний экран</string>
     <string name="preferences_interface_homescreen_summary">Настройка экранов и обоев</string>
     <string name="preferences_interface_homescreen_general_category">ОСНОВНЫЕ</string>
     <string name="preferences_interface_homescreen_general_screens_title">Рабочие столы</string>
-    <string name="preferences_interface_homescreen_general_screens_summary">Количество рабочих столов на главном экране</string>
+    <string name="preferences_interface_homescreen_general_screens_summary">Количество рабочих столов на домашнем экране</string>
     <string name="preferences_interface_homescreen_general_default_screen_title">Стол по умолчанию</string>
     <string name="preferences_interface_homescreen_general_default_screen_summary">Выбор рабочего стола по умолчанию</string>
     <string name="preferences_interface_homescreen_general_search_title">Строка поиска</string>
@@ -142,7 +142,7 @@
     <string name="preferences_interface_homescreen_general_grid_rows_title">Строки</string>
     <string name="preferences_interface_homescreen_general_grid_columns_title">Столбцы</string>
     <string name="preferences_interface_homescreen_general_stretch_screens_title">Эластичные экраны</string>
-    <string name="preferences_interface_homescreen_general_stretch_screens_summary">Расширять домашние экраны до заполнения размера экрана</string>
+    <string name="preferences_interface_homescreen_general_stretch_screens_summary">Расширять рабочий стол до заполнения размера экрана</string>
     <string name="preferences_interface_homescreen_general_search_summary">Включить неисчезающую строку поиска Google</string>
     <string name="preferences_interface_homescreen_general_resize_any_widget_title">Изм. разм. любого виджета</string>
     <string name="preferences_interface_homescreen_general_resize_any_widget_summary">Позволяет изменять размеры виджетов, которые изначально неизменяемые</string>
@@ -150,7 +150,7 @@
     <string name="preferences_interface_homescreen_general_hide_icon_labels_summary">Прятать подписи иконок на рабочих столах</string>
     <string name="preferences_interface_homescreen_scrolling_category">ПРОКРУТКА</string>
     <string name="preferences_interface_homescreen_scrolling_transition_effect_title">Эффект перехода</string>
-    <string name="preferences_interface_homescreen_scrolling_transition_effect_summary">Эффект перехода при перелистывании рабочих экранов</string>
+    <string name="preferences_interface_homescreen_scrolling_transition_effect_summary">Эффект перехода при перелистывании рабочих столов</string>
     <string name="preferences_interface_homescreen_scrolling_scroll_wallpaper_title">Прокрутка обоев</string>
     <string name="preferences_interface_homescreen_scrolling_scroll_wallpaper_summary">Прокручивать обои при прокрутке рабочих столов</string>
     <string name="preferences_interface_homescreen_scrolling_wallpaper_hack_title">Быстрая отрисовка обоев</string>
@@ -160,7 +160,7 @@
     <string name="preferences_interface_homescreen_scrolling_fade_adjacent_screens_title">Затемнять края экранов</string>
     <string name="preferences_interface_homescreen_scrolling_fade_adjacent_screens_summary">Затемнять края рабочих столов при перелистывании</string>
     <string name="preferences_interface_homescreen_scrolling_show_outlines_title">Показывать границы</string>
-    <string name="preferences_interface_homescreen_scrolling_show_outlines_summary">Показывать границы рабочих столов при перелистывании</string>
+    <string name="preferences_interface_homescreen_scrolling_show_outlines_summary">Показывать границы рабочего стола при перелистывании</string>
     <string name="preferences_interface_homescreen_indicator_fade_title">Скрывать индикатор</string>
     <string name="preferences_interface_homescreen_indicator_fade_summary">Скрывать индикатор страниц после смены страницы</string>
     <string name="preferences_interface_homescreen_indicator_position_title">Положение индикатора</string>
@@ -168,6 +168,7 @@
     <string name="preferences_interface_homescreen_indicator_category">ИНДИКАТОР</string>
     <string name="preferences_interface_homescreen_indicator_enable_title">Отображать индикатор</string>
     <string name="preferences_interface_homescreen_indicator_enable_summary">Отображать индикатор выбранной страницы внизу экрана</string>
+    <string name="preferences_interface_homescreen_icon_scale_summary">Размер иконок на рабочем столе</string>
 
     <!-- Drawer -->
     <string name="preferences_interface_drawer_title">Главное меню</string>
@@ -210,6 +211,7 @@
     <string name="preferences_interface_gestures_double_tap_title">Двойной тап</string>
     <string name="preferences_interface_gestures_swipe_up_title">Росчерк вверх</string>
     <string name="preferences_interface_gestures_swipe_down_title">Росчерк вниз</string>
+    <string name="preferences_interface_gestures_no_action">Нет действия</string>
 
     <!-- General -->
     <string name="preferences_interface_general_title">Основные</string>
