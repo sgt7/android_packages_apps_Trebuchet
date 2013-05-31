@@ -2132,7 +2132,26 @@ public final class Launcher extends Activity
             launchIntent.setComponent(ComponentName.unflattenFromString(mDrawerBackActivity));
             launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             mDrawerBackActivity = "";
-            startActivity(launchIntent);
+            int in = 0;
+            int out = 0;
+            switch (Settings.System.getInt(getContentResolver(),
+                    Settings.System.DRAWER_TRANSITION, 0)) {
+                case 1:
+                    in = com.android.internal.R.anim.slide_in_left;
+                    out = com.android.internal.R.anim.slide_out_right;
+                    break;
+                case 2:
+                    in = com.android.internal.R.anim.slide_in_right;
+                    out = com.android.internal.R.anim.slide_out_left;
+                    break;
+            }
+            if (in != 0) {
+                ActivityOptions opts = ActivityOptions.makeCustomAnimation(this,
+                        in, out);
+                startActivity(launchIntent, opts.toBundle());
+            } else {
+                startActivity(launchIntent);
+            }
             return;
         }
 
