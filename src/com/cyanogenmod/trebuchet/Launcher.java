@@ -136,6 +136,7 @@ public final class Launcher extends Activity
 
     private static final int MENU_GROUP_WALLPAPER = 1;
     private static final int MENU_GROUP_DRAWER = MENU_GROUP_WALLPAPER + 1;
+    private static final int MENU_GROUP_LOCK = MENU_GROUP_DRAWER + 1;
     private static final int MENU_DRAWER = Menu.FIRST + 1;
     private static final int MENU_MANAGE_APPS = MENU_DRAWER + 1;
     private static final int MENU_SYSTEM_SETTINGS = MENU_MANAGE_APPS + 1;
@@ -1779,7 +1780,7 @@ public final class Launcher extends Activity
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        if (isWorkspaceLocked()) {
+        if (!isAllAppsVisible() && isWorkspaceLocked()) {
             return false;
         }
 
@@ -1808,7 +1809,7 @@ public final class Launcher extends Activity
                         return true;
                     }
             });
-        menu.add(0, MENU_LOCK_WORKSPACE, 0, !mLockWorkspace ? R.string.menu_lock_workspace : R.string.menu_unlock_workspace)
+        menu.add(MENU_GROUP_LOCK, MENU_LOCK_WORKSPACE, 0, !mLockWorkspace ? R.string.menu_lock_workspace : R.string.menu_unlock_workspace)
             .setAlphabeticShortcut('L');
         menu.add(0, MENU_MANAGE_APPS, 0, R.string.menu_manage_apps)
             .setIcon(android.R.drawable.ic_menu_manage)
@@ -1848,6 +1849,7 @@ public final class Launcher extends Activity
         boolean allAppsVisible = (mAppsCustomizeTabHost.getVisibility() == View.VISIBLE);
         menu.setGroupVisible(MENU_GROUP_WALLPAPER, !allAppsVisible);
         menu.setGroupVisible(MENU_GROUP_DRAWER, !allAppsVisible);
+        menu.setGroupVisible(MENU_GROUP_LOCK, !allAppsVisible);
 
         menu.findItem(MENU_LOCK_WORKSPACE).setTitle(!mLockWorkspace ? R.string.menu_lock_workspace : R.string.menu_unlock_workspace);
 
