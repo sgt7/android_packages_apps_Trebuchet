@@ -441,4 +441,16 @@ s -->
 
     <string name="dialog_indicator_color_title">Select color</string>
     <string name="current_input_method">Default</string>
+
+
+    <!-- Menu item used to lock workspace -->
+    <string name="menu_lock_workspace">Lock homescreen</string>
+    <!-- Menu item used to unlock workspace -->
+    <string name="menu_unlock_workspace">Unlock homescreen</string>
+
+    <!-- Workspace is locked -->
+    <string name="workspace_locked">Homescreen is locked, unlock in settings to rearrange</string>
+
+    <string name="preferences_interface_general_lock_workspace_title">Lock homescreen</string>
+    <string name="preferences_interface_general_lock_workspace_summary">Lock shortcuts and folders positions in the homescreen, dock and apps and widgets drawer</string>
 </resources>

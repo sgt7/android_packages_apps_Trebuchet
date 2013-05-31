@@ -142,6 +142,7 @@ public final class Launcher extends Activity
     private static final int MENU_PREFERENCES = MENU_SYSTEM_SETTINGS + 1;
     private static final int MENU_WALLPAPER_SETTINGS = MENU_PREFERENCES + 1;
     private static final int MENU_HELP = MENU_WALLPAPER_SETTINGS + 1;
+    private static final int MENU_LOCK_WORKSPACE = MENU_HELP + 1;
 
     private static final int REQUEST_CREATE_SHORTCUT = 1;
     private static final int REQUEST_CREATE_APPWIDGET = 5;
@@ -319,6 +320,7 @@ public final class Launcher extends Activity
     private boolean mShowDockDivider;
     private boolean mHideIconLabels;
     private boolean mAutoRotate;
+    private boolean mLockWorkspace;
     private boolean mFullscreenMode;
     private boolean mDrawerShowWallpaper;
     private boolean mLandscapeDockOnBottom;
@@ -410,6 +412,7 @@ public final class Launcher extends Activity
         mShowDockDivider = PreferencesProvider.Interface.Dock.getShowDivider() && mShowHotseat;
         mHideIconLabels = PreferencesProvider.Interface.Homescreen.getHideIconLabels();
         mAutoRotate = PreferencesProvider.Interface.General.getAutoRotate(getResources().getBoolean(R.bool.allow_rotation));
+        mLockWorkspace = PreferencesProvider.Interface.General.getLockWorkspace(getResources().getBoolean(R.bool.lock_workspace));
         mFullscreenMode = PreferencesProvider.Interface.General.getFullscreenMode();
         mDrawerShowWallpaper = PreferencesProvider.Interface.Drawer.getDrawerShowWallpaper();
         mLandscapeDockOnBottom = PreferencesProvider.Interface.Dock.getLandscapeDockOnBottom() &&
@@ -1526,16 +1529,27 @@ public final class Launcher extends Activity
             // also will cancel mWaitingForResult.
             closeSystemDialogs();
 
-            final boolean drawerIntent = intent.hasCategory("com.cyanogenmod.trebuchet.APP_DRAWER");
-            mDrawerBackActivity = drawerIntent ? intent.getStringExtra("component") : "";
-            if (mDrawerBackActivity.contains("trebuchet")) mDrawerBackActivity = "";
-
             final boolean alreadyOnHome =
                     ((intent.getFlags() & Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT)
                         != Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT);
 
+            final boolean drawerIntent = intent.hasCategory("com.cyanogenmod.trebuchet.APP_DRAWER");
+            ActivityManager am = (ActivityManager) getSystemService(Activity.ACTIVITY_SERVICE);
+            //if (!alreadyOnHome) {
+                try {
+                    mDrawerBackActivity = am.getRunningTasks(2).get(1).topActivity.flattenToString();
+                } catch (Exception e) {
+                    mDrawerBackActivity = "";
+                }
+                if (mDrawerBackActivity.contains("trebuchet")) mDrawerBackActivity = "";
+            //}
+
             Runnable processIntent = new Runnable() {
                 public void run() {
+                    if (mWorkspace == null) {
+                        // Can be cases where mWorkspace is null, this prevents a NPE
+                        return;
+                    }
                     Folder openFolder = mWorkspace.getOpenFolder();
                     // In all these cases, only animate if we're already on home
                     mWorkspace.exitWidgetResizeMode();
@@ -1551,6 +1565,10 @@ public final class Launcher extends Activity
                     // otherwise, just wait until onResume to set the state back to Workspace
                     if (alreadyOnHome && !drawerIntent) {
                         showWorkspace(true);
+                    } else if (alreadyOnHome && drawerIntent && isAllAppsVisible()) {
+                        onBackPressed();
+                    } else if (alreadyOnHome && drawerIntent) {
+                        showAllApps(true);
                     } else {
                         mOnResumeState = drawerIntent ? State.APPS_CUSTOMIZE : State.WORKSPACE;
                     }
@@ -1790,7 +1808,8 @@ public final class Launcher extends Activity
                         return true;
                     }
             });
-
+        menu.add(0, MENU_LOCK_WORKSPACE, 0, !mLockWorkspace ? R.string.menu_lock_workspace : R.string.menu_unlock_workspace)
+            .setAlphabeticShortcut('L');
         menu.add(0, MENU_MANAGE_APPS, 0, R.string.menu_manage_apps)
             .setIcon(android.R.drawable.ic_menu_manage)
             .setIntent(manageApps)
@@ -1830,6 +1849,8 @@ public final class Launcher extends Activity
         menu.setGroupVisible(MENU_GROUP_WALLPAPER, !allAppsVisible);
         menu.setGroupVisible(MENU_GROUP_DRAWER, !allAppsVisible);
 
+        menu.findItem(MENU_LOCK_WORKSPACE).setTitle(!mLockWorkspace ? R.string.menu_lock_workspace : R.string.menu_unlock_workspace);
+
         //Intent launcherIntent = new Intent(Intent.ACTION_MAIN);
         //launcherIntent.addCategory(Intent.CATEGORY_HOME);
         //launcherIntent.addCategory(Intent.CATEGORY_DEFAULT);
@@ -1845,9 +1866,13 @@ public final class Launcher extends Activity
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-        case MENU_WALLPAPER_SETTINGS:
-            startWallpaper();
-            return true;
+            case MENU_WALLPAPER_SETTINGS:
+                startWallpaper();
+                return true;
+            case MENU_LOCK_WORKSPACE:
+                mLockWorkspace = !mLockWorkspace;
+                PreferencesProvider.Interface.General.setLockWorkspace(this, mLockWorkspace);
+                return true;
         }
 
         return super.onOptionsItemSelected(item);
@@ -2601,7 +2626,11 @@ public final class Launcher extends Activity
                 showAddDialog(longClickCellInfo);
             } else {
                 if (!(itemUnderLongClick instanceof Folder)) {
-                    // User long pressed on an item
+                    // User long pressed on an item (only if workspace is not locked)
+                    if (mLockWorkspace) {
+                        Toast.makeText(this, getString(R.string.workspace_locked), Toast.LENGTH_SHORT).show();
+                        return false;
+                    }
                     mWorkspace.startDrag(longClickCellInfo);
                 }
             }
@@ -2618,6 +2647,10 @@ public final class Launcher extends Activity
     }
     SearchDropTargetBar getSearchBar() {
         return mSearchDropTargetBar;
+    }
+
+    boolean getLockWorkspace() {
+        return mLockWorkspace;
     }
 
     /**
