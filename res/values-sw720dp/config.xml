@@ -28,4 +28,8 @@
 
 <!-- Hotseat -->
     <bool name="hotseat_transpose_layout_with_orientation">false</bool>
+
+    <!-- Workspace grid size -->
+    <integer name="config_maxWorkspaceRows">8</integer>
+    <integer name="config_maxWorkspaceColumns">10</integer>
 </resources>
