@@ -344,6 +344,8 @@ public final class Launcher extends Activity
     private int mHomescreenSwipeUp;
     private int mHomescreenSwipeDown;
     private boolean mFadeOutDrawer;
+    private boolean mShowShading;
+
 
     private String mDrawerBackActivity = "";
 
@@ -436,6 +438,7 @@ public final class Launcher extends Activity
         } else {
             mDrawerShowWallpaper = true;
         }
+        mShowShading = PreferencesProvider.Interface.Homescreen.getShowShading();
 
         if (PROFILE_STARTUP) {
             android.os.Debug.startMethodTracing(
@@ -2996,20 +2999,20 @@ public final class Launcher extends Activity
     }
 
     private void setWorkspaceBackground(boolean workspace) {
-        if (mDrawerShowWallpaper) return;
         if (mLauncherView != null) {
-            mLauncherView.setBackground(workspace ?
+            mLauncherView.setBackground(workspace && mShowShading ?
                     mWorkspaceBackgroundDrawable : null);
         }
     }
 
     void updateWallpaperVisibility(boolean visible) {
-        if (mDrawerShowWallpaper) return;
-        int wpflags = visible && mWallpaperVisible ? WindowManager.LayoutParams.FLAG_SHOW_WALLPAPER : 0;
-        int curflags = getWindow().getAttributes().flags
-                & WindowManager.LayoutParams.FLAG_SHOW_WALLPAPER;
-        if (wpflags != curflags) {
-            getWindow().setFlags(wpflags, WindowManager.LayoutParams.FLAG_SHOW_WALLPAPER);
+        if (!mDrawerShowWallpaper) {
+            int wpflags = visible && mWallpaperVisible ? WindowManager.LayoutParams.FLAG_SHOW_WALLPAPER : 0;
+            int curflags = getWindow().getAttributes().flags
+                    & WindowManager.LayoutParams.FLAG_SHOW_WALLPAPER;
+            if (wpflags != curflags) {
+                getWindow().setFlags(wpflags, WindowManager.LayoutParams.FLAG_SHOW_WALLPAPER);
+            }
         }
         setWorkspaceBackground(visible);
     }

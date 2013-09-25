@@ -53,6 +53,10 @@
             android:title="@string/preferences_interface_homescreen_general_search_title"
             android:summary="@string/preferences_interface_homescreen_general_search_summary"
             android:defaultValue="true" />
+        <CheckBoxPreference android:key="ui_homescreen_general_shading"
+            android:title="@string/preferences_interface_homescreen_general_shading_title"
+            android:summary="@string/preferences_interface_homescreen_general_shading_summary"
+            android:defaultValue="true" />
         <com.cyanogenmod.trebuchet.preference.SeekBarDialogPreference android:key="ui_icon_scale"
             android:title="@string/preferences_interface_dock_icon_scale_title"
             android:summary="@string/preferences_interface_homescreen_icon_scale_summary"
