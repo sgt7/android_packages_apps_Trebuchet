@@ -2390,29 +2390,32 @@ public final class Launcher extends Activity
     @Override
     public void onBackPressed() {
         if (!mDrawerBackActivity.isEmpty()) {
-            Intent launchIntent = new Intent();
-            launchIntent.setComponent(ComponentName.unflattenFromString(mDrawerBackActivity));
-            launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            mDrawerBackActivity = "";
-            int in = 0;
-            int out = 0;
-            switch (Settings.System.getInt(getContentResolver(),
-                    Settings.System.DRAWER_TRANSITION, 0)) {
-                case 1:
-                    in = com.android.internal.R.anim.slide_in_left;
-                    out = com.android.internal.R.anim.slide_out_right;
-                    break;
-                case 2:
-                    in = com.android.internal.R.anim.slide_in_right;
-                    out = com.android.internal.R.anim.slide_out_left;
-                    break;
-            }
-            if (in != 0) {
-                ActivityOptions opts = ActivityOptions.makeCustomAnimation(this,
-                        in, out);
-                startActivity(launchIntent, opts.toBundle());
-            } else {
-                startActivity(launchIntent);
+            try {
+                Intent launchIntent = new Intent();
+                launchIntent.setComponent(ComponentName.unflattenFromString(mDrawerBackActivity));
+                launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                mDrawerBackActivity = "";
+                int in = 0;
+                int out = 0;
+                switch (Settings.System.getInt(getContentResolver(),
+                        "drawer_transition", 0)) {
+                    case 1:
+                        in = com.android.internal.R.anim.slide_in_left;
+                        out = com.android.internal.R.anim.slide_out_right;
+                        break;
+                    case 2:
+                        in = com.android.internal.R.anim.slide_in_right;
+                        out = com.android.internal.R.anim.slide_out_left;
+                        break;
+                }
+                if (in != 0) {
+                    ActivityOptions opts = ActivityOptions.makeCustomAnimation(this,
+                            in, out);
+                    startActivity(launchIntent, opts.toBundle());
+                } else {
+                    startActivity(launchIntent);
+                }
+            } catch (Exception e) {
             }
             return;
         }
