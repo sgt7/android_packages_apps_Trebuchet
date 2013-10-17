@@ -377,7 +377,7 @@ public class AppsCustomizePagedView extends PagedViewWithDraggableItems implemen
     protected void onUnhandledTap(MotionEvent ev) {
         if (PreferencesProvider.Interface.Drawer.getDismissDrawerOnTap()) {
             // Dismiss AppsCustomize if we tap
-            mLauncher.showWorkspace(true);
+            mLauncher.onBackPressed();
         }
     }
 
@@ -2242,7 +2242,7 @@ public class AppsCustomizePagedView extends PagedViewWithDraggableItems implemen
         while (iterator.hasNext()) {
             ApplicationInfo appInfo = iterator.next();
             boolean system = (appInfo.flags & ApplicationInfo.DOWNLOADED_FLAG) == 0;
-            if (mHiddenApps.contains(appInfo.componentName) || 
+            if (mHiddenApps.contains(appInfo.componentName) ||
                 (system && !getShowSystemApps()) ||
                 (!system && !getShowDownloadedApps())) {
                 iterator.remove();

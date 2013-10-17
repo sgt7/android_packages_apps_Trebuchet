@@ -1782,6 +1782,7 @@ public final class Launcher extends Activity
                     mDrawerBackActivity = "";
                 }
                 if (mDrawerBackActivity.contains("trebuchet")) mDrawerBackActivity = "";
+            } else if (alreadyOnHome && drawerIntent) {
             } else {
                 mDrawerBackActivity = "";
             }
@@ -2400,12 +2401,12 @@ public final class Launcher extends Activity
                 switch (Settings.System.getInt(getContentResolver(),
                         "drawer_transition", 0)) {
                     case 1:
-                        in = com.android.internal.R.anim.slide_in_left;
-                        out = com.android.internal.R.anim.slide_out_right;
-                        break;
-                    case 2:
                         in = com.android.internal.R.anim.slide_in_right;
                         out = com.android.internal.R.anim.slide_out_left;
+                        break;
+                    case 2:
+                        in = com.android.internal.R.anim.slide_in_left;
+                        out = com.android.internal.R.anim.slide_out_right;
                         break;
                 }
                 if (in != 0) {
