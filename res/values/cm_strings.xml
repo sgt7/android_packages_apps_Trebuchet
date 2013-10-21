@@ -194,8 +194,12 @@
     <string name="live_folder_cling_create_folder">Live folders allow app developers to create folders with dynamic content.
     Folder contents can be removed with a long press on a single entry. Unlike normal folders, items can only be added by
     the application creating the folder</string>
-   <string name="preferences_interface_homescreen_icon_scale_summary">Scale of icons on the homescreen</string>
 
+    <!-- Folder titles -->
+    <string name="conversations_title">Conversations</string>
+    <string name="google_title">Google</string>
+
+   <string name="preferences_interface_homescreen_icon_scale_summary">Scale of icons on the homescreen</string>
 
     <!-- Drawer -->
     <string name="preferences_interface_drawer_icon_scale_summary">Scale of icons in the app drawer</string>
