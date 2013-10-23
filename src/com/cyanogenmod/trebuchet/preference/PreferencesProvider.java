@@ -93,9 +93,6 @@ public final class PreferencesProvider {
                     return def;
                 }
             }
-            public static boolean getStretchScreens() {
-                return getBoolean("ui_homescreen_stretch_screens", true);
-            }
             public static int getIconScale(int def) {
                 return getInt("ui_icon_scale", def);
             }
