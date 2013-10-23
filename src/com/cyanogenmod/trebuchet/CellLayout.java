@@ -993,13 +993,6 @@ public class CellLayout extends ViewGroup {
             int hSpace = widthSpecSize - getPaddingLeft() - getPaddingRight();
             int vSpace = heightSpecSize - getPaddingTop() - getPaddingBottom();
 
-            if (hSpace - (mCountX * mCellWidth) < 0) {
-                mCellWidth = hSpace / mCountX;
-            }
-            if (vSpace - (mCountY * mCellHeight) < 0) {
-                mCellHeight = vSpace / mCountY;
-            }
-
             int hFreeSpace = hSpace - (mCountX * mCellWidth);
             int vFreeSpace = vSpace - (mCountY * mCellHeight);
 
@@ -1524,7 +1517,7 @@ public class CellLayout extends ViewGroup {
      *        matches exactly. Otherwise we find the best matching direction.
      * @param occoupied The array which represents which cells in the CellLayout are occupied
      * @param blockOccupied The array which represents which cells in the specified block (cellX,
-     *        cellY, spanX, spanY) are occupied. This is used when try to move a group of views. 
+     *        cellY, spanX, spanY) are occupied. This is used when try to move a group of views.
      * @param result Array in which to place the result, or null (in which case a new array will
      *        be allocated)
      * @return The X, Y cell of a vacant area that can contain this object,
@@ -1997,7 +1990,7 @@ public class CellLayout extends ViewGroup {
     private boolean attemptPushInDirection(ArrayList<View> intersectingViews, Rect occupied,
             int[] direction, View ignoreView, ItemConfiguration solution) {
         if ((Math.abs(direction[0]) + Math.abs(direction[1])) > 1) {
-            // If the direction vector has two non-zero components, we try pushing 
+            // If the direction vector has two non-zero components, we try pushing
             // separately in each of the components.
             int temp = direction[1];
             direction[1] = 0;
@@ -2038,7 +2031,7 @@ public class CellLayout extends ViewGroup {
             direction[0] = temp;
             direction[0] *= -1;
             direction[1] *= -1;
-            
+
         } else {
             // If the direction vector has a single non-zero component, we push first in the
             // direction of the vector
@@ -2056,8 +2049,8 @@ public class CellLayout extends ViewGroup {
             // Switch the direction back
             direction[0] *= -1;
             direction[1] *= -1;
-            
-            // If we have failed to find a push solution with the above, then we try 
+
+            // If we have failed to find a push solution with the above, then we try
             // to find a solution by pushing along the perpendicular axis.
 
             // Swap the components
@@ -2119,7 +2112,7 @@ public class CellLayout extends ViewGroup {
             }
         }
 
-        // First we try to find a solution which respects the push mechanic. That is, 
+        // First we try to find a solution which respects the push mechanic. That is,
         // we try to find a solution such that no displaced item travels through another item
         // without also displacing that item.
         if (attemptPushInDirection(mIntersectingViews, mOccupiedRect, direction, ignoreView,
