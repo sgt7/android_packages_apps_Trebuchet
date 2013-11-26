@@ -346,9 +346,6 @@ public final class Launcher extends Activity
     private boolean mFadeOutDrawer;
     private boolean mShowShading;
 
-
-    private String mDrawerBackActivity = "";
-
     private StatusBarManager mStatusBarManager;
 
     private boolean mWallpaperVisible;
@@ -1773,20 +1770,6 @@ public final class Launcher extends Activity
                     ((intent.getFlags() & Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT)
                         != Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT);
 
-            final boolean drawerIntent = intent.hasCategory("com.cyanogenmod.trebuchet.APP_DRAWER");
-            ActivityManager am = (ActivityManager) getSystemService(Activity.ACTIVITY_SERVICE);
-            if (!alreadyOnHome && drawerIntent) {
-                try {
-                    mDrawerBackActivity = am.getRunningTasks(2).get(1).topActivity.flattenToString();
-                } catch (Exception e) {
-                    mDrawerBackActivity = "";
-                }
-                if (mDrawerBackActivity.contains("trebuchet")) mDrawerBackActivity = "";
-            } else if (alreadyOnHome && drawerIntent) {
-            } else {
-                mDrawerBackActivity = "";
-            }
-
             Runnable processIntent = new Runnable() {
                 public void run() {
                     if (mWorkspace == null) {
@@ -1807,14 +1790,10 @@ public final class Launcher extends Activity
 
                     // If we are already on home, then just animate back to the workspace,
                     // otherwise, just wait until onResume to set the state back to Workspace
-                    if (alreadyOnHome && !drawerIntent) {
+                    if (alreadyOnHome) {
                         showWorkspace(true);
-                    } else if (alreadyOnHome && drawerIntent && isAllAppsVisible()) {
-                        onBackPressed();
-                    } else if (alreadyOnHome && drawerIntent) {
-                        showAllApps(true);
                     } else {
-                        mOnResumeState = drawerIntent ? State.APPS_CUSTOMIZE : State.WORKSPACE;
+                        mOnResumeState = State.WORKSPACE;
                     }
 
                     final View v = getWindow().peekDecorView();
@@ -2390,37 +2369,6 @@ public final class Launcher extends Activity
 
     @Override
     public void onBackPressed() {
-        if (!mDrawerBackActivity.isEmpty()) {
-            try {
-                Intent launchIntent = new Intent();
-                launchIntent.setComponent(ComponentName.unflattenFromString(mDrawerBackActivity));
-                launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                mDrawerBackActivity = "";
-                int in = 0;
-                int out = 0;
-                switch (Settings.System.getInt(getContentResolver(),
-                        "drawer_transition", 0)) {
-                    case 1:
-                        in = com.android.internal.R.anim.slide_in_right;
-                        out = com.android.internal.R.anim.slide_out_left;
-                        break;
-                    case 2:
-                        in = com.android.internal.R.anim.slide_in_left;
-                        out = com.android.internal.R.anim.slide_out_right;
-                        break;
-                }
-                if (in != 0) {
-                    ActivityOptions opts = ActivityOptions.makeCustomAnimation(this,
-                            in, out);
-                    startActivity(launchIntent, opts.toBundle());
-                } else {
-                    startActivity(launchIntent);
-                }
-            } catch (Exception e) {
-            }
-            return;
-        }
-
         if (isAllAppsVisible()) {
             showWorkspace(true);
         } else if (mWorkspace.getOpenFolder() != null) {
@@ -4545,7 +4493,7 @@ public final class Launcher extends Activity
                return false;
             }
         }
-        return true;
+        return false;
     }
 
     private Cling initCling(int clingId, int[] positionData, boolean animate, int delay) {

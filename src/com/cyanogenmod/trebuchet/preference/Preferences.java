@@ -128,6 +128,11 @@ public class Preferences extends PreferenceActivity
         editor.commit();
     }
 
+    @Override
+    protected boolean isValidFragment (String fragmentName) {
+        return true;
+    }
+
     public static class HomescreenFragment extends PreferenceFragment {
         @Override
         public void onCreate(Bundle savedInstanceState) {
@@ -169,7 +174,7 @@ public class Preferences extends PreferenceActivity
             if (preference == mDrawerColor) {
                 ColorPickerDialog cp = new ColorPickerDialog(getActivity(),
                         mDrawerColorListener, PreferencesProvider.Interface.Drawer.getDrawerColor());
-                cp.setDefaultColor(0xff000000);
+                cp.setDefaultColor(0x00000000);
                 cp.show();
                 return true;
             }

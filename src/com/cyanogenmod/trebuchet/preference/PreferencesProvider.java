@@ -103,7 +103,7 @@ public final class PreferencesProvider {
                 return getBoolean("ui_homescreen_general_search", true);
             }
             public static boolean getShowShading() {
-                return getBoolean("ui_homescreen_general_shading", true);
+                return getBoolean("ui_homescreen_general_shading", false);
             }
             public static boolean getHideIconLabels() {
                 return getBoolean("ui_homescreen_general_hide_icon_labels", false);
@@ -174,7 +174,7 @@ public final class PreferencesProvider {
                 return getInt("ui_drawer_icon_scale", def);
             }
             public static int getDrawerColor() {
-                return getInt("ui_drawer_background", 0xFF000000);
+                return getInt("ui_drawer_background", 0x00000000);
             }
             public static int getWidgetCountX(int def) {
                 String[] values = getString("ui_app_widget_grid", "0|" + def).split("\\|");
@@ -209,10 +209,10 @@ public final class PreferencesProvider {
                 }
             }
             public static boolean getDismissDrawerOnTap() {
-                return getBoolean("ui_drawer_dismiss_on_tap", false);
+                return getBoolean("ui_drawer_dismiss_on_tap", true);
             }
             public static boolean getFadeOut() {
-                return getBoolean("ui_drawer_fade", false);
+                return getBoolean("ui_drawer_fade", true);
             }
             public static class Scrolling {
                 public static AppsCustomizePagedView.TransitionEffect getTransitionEffect(String def) {

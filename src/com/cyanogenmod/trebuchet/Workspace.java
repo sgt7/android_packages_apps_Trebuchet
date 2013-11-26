@@ -422,8 +422,7 @@ public class Workspace extends PagedView
         mWallpaperHack = PreferencesProvider.Interface.Homescreen.Scrolling.getWallpaperHack(
                 res.getBoolean(R.bool.config_workspaceDefaultWallpaperHack));
         mWallpaperSize = PreferencesProvider.Interface.Homescreen.Scrolling.getWallpaperSize();
-        mShowOutlines = PreferencesProvider.Interface.Homescreen.Scrolling.getShowOutlines(
-                res.getBoolean(R.bool.config_workspaceDefaultShowOutlines));
+        mShowOutlines = PreferencesProvider.Interface.Homescreen.Scrolling.getShowOutlines(false);
         mFadeInAdjacentScreens = PreferencesProvider.Interface.Homescreen.Scrolling.getFadeInAdjacentScreens(
                 res.getBoolean(R.bool.config_workspaceDefualtFadeInAdjacentScreens));
         mShowScrollingIndicator = PreferencesProvider.Interface.Homescreen.Indicator.getShowScrollingIndicator();

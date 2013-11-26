@@ -22,8 +22,6 @@
     package="com.cyanogenmod.trebuchet"
     android:versionName="@string/application_version">
 
-    <uses-sdk android:minSdkVersion="17" android:targetSdkVersion="18" />
-
     <permission
         android:name="com.android.launcher.permission.PRELOAD_WORKSPACE"
         android:permissionGroup="android.permission-group.SYSTEM_TOOLS"
@@ -59,7 +57,6 @@
 
 
     <uses-permission android:name="android.permission.CALL_PHONE" />
-    <uses-permission android:name="android.permission.GET_TASKS" />
     <uses-permission android:name="android.permission.SET_WALLPAPER" />
     <uses-permission android:name="android.permission.SET_WALLPAPER_HINTS" />
     <uses-permission android:name="android.permission.VIBRATE" />
@@ -88,8 +85,7 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.HOME" />
                 <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.MONKEY"/>
-                <category android:name="com.cyanogenmod.trebuchet.APP_DRAWER" />
+                <category android:name="android.intent.category.MONKEY" />
             </intent-filter>
         </activity>
 
@@ -128,6 +124,7 @@
             android:label="@string/preferences_title">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="com.cyanogenmod.category.LAUNCHER_PREFERENCES" />
             </intent-filter>
         </activity>

@@ -56,12 +56,12 @@
         <CheckBoxPreference android:key="ui_homescreen_general_shading"
             android:title="@string/preferences_interface_homescreen_general_shading_title"
             android:summary="@string/preferences_interface_homescreen_general_shading_summary"
-            android:defaultValue="true" />
+            android:defaultValue="false" />
         <com.cyanogenmod.trebuchet.preference.SeekBarDialogPreference android:key="ui_icon_scale"
             android:title="@string/preferences_interface_dock_icon_scale_title"
             android:summary="@string/preferences_interface_homescreen_icon_scale_summary"
             launcher:min="60"
-            launcher:max="100"
+            launcher:max="120"
             android:defaultValue="100" />
         <CheckBoxPreference android:key="ui_homescreen_general_hide_icon_labels"
             android:title="@string/preferences_interface_homescreen_general_hide_icon_labels_title"
@@ -95,7 +95,7 @@
         <CheckBoxPreference android:key="ui_homescreen_scrolling_show_outlines"
             android:title="@string/preferences_interface_homescreen_scrolling_show_outlines_title"
             android:summary="@string/preferences_interface_homescreen_scrolling_show_outlines_summary"
-            android:defaultValue="@bool/config_workspaceDefaultShowOutlines" />
+            android:defaultValue="false" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/preferences_interface_homescreen_indicator_category">
         <CheckBoxPreference android:key="ui_homescreen_indicator_enable"
