@@ -18,7 +18,16 @@
 -->
 
 <resources>
-    <style name="Theme.WallpaperPicker" parent="@android:style/Theme.Holo.NoActionBar">
+    <style name="Theme.WallpaperCropper" parent="@android:style/Theme.Holo">
+        <item name="android:actionBarStyle">@style/WallpaperCropperActionBar</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowActionBarOverlay">true</item>
+        <item name="android:windowTranslucentNavigation">true</item>
+    </style>
+
+    <style name="WallpaperCropperActionBar" parent="android:style/Widget.Holo.ActionBar">
+        <item name="android:displayOptions">showCustom</item>
+        <item name="android:background">#88000000</item>
     </style>
 
     <style name="Theme" parent="@android:style/Theme.Holo.Wallpaper.NoTitleBar">
@@ -34,6 +43,7 @@
         <item name="android:paddingLeft">35dp</item>
         <item name="android:paddingRight">35dp</item>
         <item name="android:text">@string/cling_dismiss</item>
+        <item name="android:textColor">#ffffff</item>
         <item name="android:textStyle">bold</item>
         <item name="android:background">@drawable/cling_button_bg</item>
     </style>

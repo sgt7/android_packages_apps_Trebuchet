@@ -365,7 +365,7 @@ public final class Launcher extends Activity
     private static ArrayList<PendingAddArguments> sPendingAddList
             = new ArrayList<PendingAddArguments>();
 
-    private static boolean sForceEnableRotation = isPropertyEnabled(FORCE_ENABLE_ROTATION_PROPERTY);
+    public static boolean sForceEnableRotation = isPropertyEnabled(FORCE_ENABLE_ROTATION_PROPERTY);
 
     private static class PendingAddArguments {
         int requestCode;

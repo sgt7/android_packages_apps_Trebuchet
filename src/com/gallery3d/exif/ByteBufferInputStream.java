@@ -14,19 +14,35 @@
  * limitations under the License.
  */
 
-package com.cyanogenmod.trebuchet;
+package com.android.gallery3d.exif;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
 
-/**
- * Takes care of setting initial wallpaper for a user, by selecting the
- * first wallpaper that is not in use by another user.
- */
-public class UserInitializeReceiver extends BroadcastReceiver {
+class ByteBufferInputStream extends InputStream {
+
+    private ByteBuffer mBuf;
+
+    public ByteBufferInputStream(ByteBuffer buf) {
+        mBuf = buf;
+    }
+
     @Override
-    public void onReceive(Context context, Intent intent) {
-        // TODO: initial wallpaper now that wallpapers are owned by another app
+    public int read() {
+        if (!mBuf.hasRemaining()) {
+            return -1;
+        }
+        return mBuf.get() & 0xFF;
+    }
+
+    @Override
+    public int read(byte[] bytes, int off, int len) {
+        if (!mBuf.hasRemaining()) {
+            return -1;
+        }
+
+        len = Math.min(len, mBuf.remaining());
+        mBuf.get(bytes, off, len);
+        return len;
     }
 }

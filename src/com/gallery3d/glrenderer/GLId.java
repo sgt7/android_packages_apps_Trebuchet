@@ -14,19 +14,20 @@
  * limitations under the License.
  */
 
-package com.cyanogenmod.trebuchet;
+package com.android.gallery3d.glrenderer;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
+import javax.microedition.khronos.opengles.GL11;
+import javax.microedition.khronos.opengles.GL11ExtensionPack;
 
-/**
- * Takes care of setting initial wallpaper for a user, by selecting the
- * first wallpaper that is not in use by another user.
- */
-public class UserInitializeReceiver extends BroadcastReceiver {
-    @Override
-    public void onReceive(Context context, Intent intent) {
-        // TODO: initial wallpaper now that wallpapers are owned by another app
-    }
+// This mimics corresponding GL functions.
+public interface GLId {
+    public int generateTexture();
+
+    public void glGenBuffers(int n, int[] buffers, int offset);
+
+    public void glDeleteTextures(GL11 gl, int n, int[] textures, int offset);
+
+    public void glDeleteBuffers(GL11 gl, int n, int[] buffers, int offset);
+
+    public void glDeleteFramebuffers(GL11ExtensionPack gl11ep, int n, int[] buffers, int offset);
 }

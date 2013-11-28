@@ -14,19 +14,18 @@
  * limitations under the License.
  */
 
-package com.cyanogenmod.trebuchet;
-
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
+package com.android.gallery3d.exif;
 
 /**
- * Takes care of setting initial wallpaper for a user, by selecting the
- * first wallpaper that is not in use by another user.
+ * The constants of the IFD ID defined in EXIF spec.
  */
-public class UserInitializeReceiver extends BroadcastReceiver {
-    @Override
-    public void onReceive(Context context, Intent intent) {
-        // TODO: initial wallpaper now that wallpapers are owned by another app
-    }
+public interface IfdId {
+    public static final int TYPE_IFD_0 = 0;
+    public static final int TYPE_IFD_1 = 1;
+    public static final int TYPE_IFD_EXIF = 2;
+    public static final int TYPE_IFD_INTEROPERABILITY = 3;
+    public static final int TYPE_IFD_GPS = 4;
+    /* This is used in ExifData to allocate enough IfdData */
+    static final int TYPE_IFD_COUNT = 5;
+
 }

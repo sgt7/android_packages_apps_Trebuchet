@@ -90,8 +90,8 @@
         </activity>
 
         <activity
-            android:name="com.cyanogenmod.trebuchet.WallpaperChooser"
-            android:theme="@style/Theme.WallpaperPicker"
+            android:name="com.cyanogenmod.trebuchet.WallpaperPickerActivity"
+            android:theme="@style/Theme.WallpaperCropper"
             android:label="@string/pick_wallpaper"
             android:icon="@mipmap/ic_launcher_wallpaper"
             android:finishOnCloseSystemDialogs="true"
@@ -100,8 +100,20 @@
                 <action android:name="android.intent.action.SET_WALLPAPER" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
-            <meta-data android:name="android.wallpaper.preview"
-                android:resource="@xml/wallpaper_picker_preview" />
+        </activity>
+
+        <activity
+            android:name="com.cyanogenmod.trebuchet.WallpaperCropActivity"
+            android:theme="@style/Theme.WallpaperCropper"
+            android:label="@string/crop_wallpaper"
+            android:icon="@mipmap/ic_launcher_wallpaper"
+            android:finishOnCloseSystemDialogs="true"
+            android:process=":wallpaper_chooser">
+            <intent-filter>
+                <action android:name="android.service.wallpaper.CROP_AND_SET_WALLPAPER" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="image/*" />
+            </intent-filter>
         </activity>
 
         <!-- Intent received used to prepopulate the default workspace. -->

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 The Android Open Source Project
+ * Copyright (C) 2010 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,28 @@
  * limitations under the License.
  */
 
-package com.cyanogenmod.trebuchet;
+package com.android.gallery3d.glrenderer;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
+import junit.framework.Assert;
 
-/**
- * Takes care of setting initial wallpaper for a user, by selecting the
- * first wallpaper that is not in use by another user.
- */
-public class UserInitializeReceiver extends BroadcastReceiver {
-    @Override
-    public void onReceive(Context context, Intent intent) {
-        // TODO: initial wallpaper now that wallpapers are owned by another app
+public class GLPaint {
+    private float mLineWidth = 1f;
+    private int mColor = 0;
+
+    public void setColor(int color) {
+        mColor = color;
+    }
+
+    public int getColor() {
+        return mColor;
+    }
+
+    public void setLineWidth(float width) {
+        Assert.assertTrue(width >= 0);
+        mLineWidth = width;
+    }
+
+    public float getLineWidth() {
+        return mLineWidth;
     }
 }

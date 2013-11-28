@@ -15,6 +15,17 @@
 -->
 
 <resources>
+<!-- Dynamic Grid -->
+    <dimen name="dynamic_grid_edge_margin">6dp</dimen>
+    <dimen name="dynamic_grid_search_bar_max_width">500dp</dimen>
+    <dimen name="dynamic_grid_search_bar_height">48dp</dimen>
+    <dimen name="dynamic_grid_page_indicator_height">24dp</dimen>
+
+<!-- Wallpaper picker -->
+    <dimen name="wallpaperThumbnailWidth">106.5dp</dimen>
+    <dimen name="wallpaperThumbnailHeight">94.5dp</dimen>
+    <dimen name="wallpaperItemIconSize">32dp</dimen>
+
 <!-- Cling -->
     <dimen name="clingPunchThroughGraphicCenterRadius">94dp</dimen>
     <dimen name="folderClingMarginTop">20dp</dimen>

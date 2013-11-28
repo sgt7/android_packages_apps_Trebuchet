@@ -16,13 +16,17 @@
 
 package com.cyanogenmod.trebuchet;
 
+import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BlurMaskFilter;
 import android.graphics.Canvas;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.PaintFlagsDrawFilter;
 import android.graphics.PorterDuff;
@@ -31,6 +35,11 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.PaintDrawable;
 import android.util.DisplayMetrics;
+import android.util.Log;
+import android.view.View;
+import android.widget.Toast;
+
+import java.util.ArrayList;
 
 /**
  * Various utilities shared amongst the Launcher's classes.
@@ -244,5 +253,19 @@ final class Utilities {
         cm.setSaturation(0.2f);
         sDisabledPaint.setColorFilter(new ColorMatrixColorFilter(cm));
         sDisabledPaint.setAlpha(0x88);
+    }
+
+    public static void startActivityForResultSafely(
+            Activity activity, Intent intent, int requestCode) {
+        try {
+            activity.startActivityForResult(intent, requestCode);
+        } catch (ActivityNotFoundException e) {
+            Toast.makeText(activity, R.string.activity_not_found, Toast.LENGTH_SHORT).show();
+        } catch (SecurityException e) {
+            Toast.makeText(activity, R.string.activity_not_found, Toast.LENGTH_SHORT).show();
+            Log.e(TAG, "Launcher does not have the permission to launch " + intent +
+                    ". Make sure to create a MAIN intent-filter for the corresponding activity " +
+                    "or use the exported attribute for this activity.", e);
+        }
     }
 }
