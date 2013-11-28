@@ -204,8 +204,8 @@ public class CellLayout extends ViewGroup {
         setAlwaysDrawnWithCacheEnabled(false);
 
         final Resources res = getResources();
-        mNormalBackground = res.getDrawable(R.drawable.homescreen_blue_normal_holo);
-        mActiveGlowBackground = res.getDrawable(R.drawable.homescreen_blue_strong_holo);
+        mNormalBackground = res.getDrawable(R.drawable.screenpanel);
+        mActiveGlowBackground = res.getDrawable(R.drawable.screenpanel_hover);
 
         mOverScrollLeft = res.getDrawable(R.drawable.overscroll_glow_left);
         mOverScrollRight = res.getDrawable(R.drawable.overscroll_glow_right);
@@ -1046,7 +1046,12 @@ public class CellLayout extends ViewGroup {
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
-        mBackgroundRect.set(0, 0, w, h);
+
+        // Expand the background drawing bounds by the padding baked into the background drawable
+        Rect padding = new Rect();
+        mNormalBackground.getPadding(padding);
+        mBackgroundRect.set(-padding.left, -padding.top, w + padding.right, h + padding.bottom);
+
         mForegroundRect.set(mForegroundPadding, mForegroundPadding,
                 w - mForegroundPadding, h - mForegroundPadding);
     }
