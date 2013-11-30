@@ -1132,7 +1132,7 @@ public final class Launcher extends Activity
         mSearchDropTargetBar = (SearchDropTargetBar) mDragLayer.findViewById(R.id.qsb_bar);
 
         // Hide the search divider if we are hiding search bar
-        if (!mShowSearchBar && mQsbDivider != null && getCurrentOrientation() == Configuration.ORIENTATION_LANDSCAPE) {
+        if ((!mShowSearchBar || !mShowDockDivider) && mQsbDivider != null && getCurrentOrientation() == Configuration.ORIENTATION_LANDSCAPE) {
             mQsbDivider.setVisibility(View.GONE);
         }
 
