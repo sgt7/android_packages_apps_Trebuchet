@@ -3476,7 +3476,7 @@ public final class Launcher extends Activity
 
     void hideDockDivider(boolean animated) {
         if (mDockDivider != null) {
-            if (mShowSearchBar && mQsbDivider != null) {
+            if (mShowSearchBar && mShowDockDivider && mQsbDivider != null) {
                 mQsbDivider.setVisibility(View.INVISIBLE);
             }
             if (mShowDockDivider) {
@@ -3484,7 +3484,7 @@ public final class Launcher extends Activity
             }
             if (mDividerAnimator != null) {
                 mDividerAnimator.cancel();
-                if (mQsbDivider != null) mQsbDivider.setAlpha(0f);
+                if (mShowSearchBar && mShowDockDivider && mQsbDivider != null) mQsbDivider.setAlpha(0f);
                 mDockDivider.setAlpha(0f);
                 mDividerAnimator = null;
             }
@@ -3508,7 +3508,7 @@ public final class Launcher extends Activity
 
     void showDockDivider(boolean animated) {
         if (mDockDivider != null) {
-            if (mShowSearchBar && mQsbDivider != null) {
+            if (mShowSearchBar && mShowDockDivider && mQsbDivider != null) {
                 mQsbDivider.setVisibility(View.VISIBLE);
             }
             if (mShowDockDivider) {
@@ -3516,7 +3516,7 @@ public final class Launcher extends Activity
             }
             if (mDividerAnimator != null) {
                 mDividerAnimator.cancel();
-                if (mQsbDivider != null) mQsbDivider.setAlpha(1f);
+                if (mShowSearchBar && mShowDockDivider && mQsbDivider != null) mQsbDivider.setAlpha(1f);
                 mDockDivider.setAlpha(1f);
                 mDividerAnimator = null;
             }
